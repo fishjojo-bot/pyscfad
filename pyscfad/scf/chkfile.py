@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 import h5py
 from pyscf.lib.chkfile import save_mol
 from pyscfad.ops import stop_grad
 from pyscfad.lib.chkfile import save
 
-def dump_scf(mol, chkfile, e_tot, mo_energy, mo_coeff, mo_occ,
-             overwrite_mol=True):
+def dump_scf(mol: Any, chkfile: str, e_tot: Any, mo_energy: Any, mo_coeff: Any, mo_occ: Any,
+             overwrite_mol: bool = True) -> None:
     if h5py.is_hdf5(chkfile) and not overwrite_mol:
         with h5py.File(chkfile, 'a') as fh5:
             if 'mol' not in fh5:

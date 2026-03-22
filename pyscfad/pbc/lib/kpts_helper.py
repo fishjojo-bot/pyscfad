@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 import numpy
 from pyscf.pbc.lib.kpts_helper import KPT_DIFF_TOL
 from pyscfad.ops import stop_grad
 
-def is_zero(kpt):
+def is_zero(kpt: Any) -> bool:
     return abs(numpy.asarray(stop_grad(kpt))).sum() < KPT_DIFF_TOL
 gamma_point = is_zero
