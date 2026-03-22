@@ -15,6 +15,8 @@
 """
 Utility functions
 """
+from __future__ import annotations
+from typing import Any
 from functools import partial
 from pyscfad import ops
 from pyscfad import pytree
@@ -51,7 +53,7 @@ def pytree_node(leaf_names, num_args=0, exclude_aux_name=()):
                    num_args=num_args,
                    exclude_aux_name=exclude_aux_name)
 
-def to_pyscf(obj, nocopy_names=(), out=None):
+def to_pyscf(obj: Any, nocopy_names: tuple[str, ...] = (), out: Any = None) -> Any:
     """Convert the pyscfad object to its pyscf counterpart.
 
     The conversion effectively removes the tracing of the object
@@ -103,7 +105,7 @@ def to_pyscf(obj, nocopy_names=(), out=None):
         setattr(out, key, val)
     return out
 
-def is_tracer(a):
+def is_tracer(a: Any) -> bool:
     """Test if the object is a tracer.
 
     Parameters

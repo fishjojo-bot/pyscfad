@@ -15,6 +15,9 @@
 """
 Default configurations related to the backend.
 """
+from __future__ import annotations
+from typing import Any, Iterator
+
 import os
 import sys
 import json
@@ -109,7 +112,7 @@ def set_backend(backend_name):
             _backend_cache[backend_name] = module
             _current_backend = module
 
-def get_backend():
+def get_backend() -> Any:
     return _current_backend
 
 @contextlib.contextmanager
@@ -122,4 +125,6 @@ def with_backend(backend_name):
             yield
         finally:
             _current_backend = previous_backend
+
+evious_backend
 

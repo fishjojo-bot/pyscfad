@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any, Callable
+
 from .config import get_backend
 
 __all__ = [
@@ -58,10 +61,10 @@ def stop_trace(fn):
         return fn(*args_no_grad, **kwargs_no_grad)
     return wrapped_fn
 
-def jit(obj, **kwargs):
+def jit(obj: Any, **kwargs) -> Any:
     return get_backend().jit(obj, **kwargs)
 
-def vmap(fun, in_axes=0, out_axes=0, chunk_size=None, signature=None):
+def vmap(fun: Callable[..., Any], in_axes: Any = 0, out_axes: Any = 0, chunk_size: int | None = None, signature: str | None = None) -> Any:
     return get_backend().vmap(fun, in_axes=in_axes, out_axes=out_axes,
                               chunk_size=chunk_size, signature=signature)
 
