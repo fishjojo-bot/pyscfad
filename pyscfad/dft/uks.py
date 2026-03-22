@@ -148,6 +148,6 @@ class UKS(rks.KohnShamDFT, uhf.UHF):
         self.__dict__.update(kwargs)
         rks.KohnShamDFT.__post_init__(self)
 
-    get_veff        = get_veff
-    energy_elec     = energy_elec
-    nuc_grad_method = pyscf_uks.UKS.nuc_grad_method
+    get_veff: Any = get_veff
+    energy_elec: Any = energy_elec
+    nuc_grad_method: Any = pyscf_uks.UKS.nuc_grad_method

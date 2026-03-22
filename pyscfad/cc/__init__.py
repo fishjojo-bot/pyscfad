@@ -15,8 +15,15 @@
 """
 Coupled cluster
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from . import rccsd
 from . import dfccsd
 
-def RCCSD(mf, *args, **kwargs):
+if TYPE_CHECKING:
+    from pyscfad.scf.hf import SCF
+
+def RCCSD(mf: SCF, *args: Any, **kwargs: Any) -> rccsd.RCCSD:
     return rccsd.RCCSD(mf, *args, **kwargs)

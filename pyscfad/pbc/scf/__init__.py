@@ -16,7 +16,7 @@
 Hartree-Fock with PBC
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pyscfad.pbc.scf import hf
 from pyscfad.pbc.scf import khf
@@ -24,8 +24,8 @@ from pyscfad.pbc.scf import khf
 if TYPE_CHECKING:
     from pyscfad.pbc.gto import Cell
 
-def RHF(cell: Cell, **kwargs) -> hf.RHF:
+def RHF(cell: Cell, **kwargs: Any) -> hf.RHF:
     return hf.RHF(cell, **kwargs)
 
-def KRHF(cell: Cell, **kwargs) -> khf.KRHF:
+def KRHF(cell: Cell, **kwargs: Any) -> khf.KRHF:
     return khf.KRHF(cell, **kwargs)

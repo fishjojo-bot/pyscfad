@@ -50,8 +50,12 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
         MO energies.
     """
     _dynamic_attr = ['cell',]
-    def __init__(self, cell: Cell, kpt: ArrayLike = numpy.zeros(3),
-                 exxdiv=getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald')):
+    def __init__(
+        self,
+        cell: Cell,
+        kpt: ArrayLike = numpy.zeros(3),
+        exxdiv: str = getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald'),
+    ) -> None:
         if not cell._built:
             sys.stderr.write('Warning: cell.build() is not called in input\n')
             cell.build()
@@ -128,7 +132,7 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
             kpt = self.kpt
         return get_ovlp(cell, kpt)
 
-    def dump_chk(self, envs):
+    def dump_chk(self, envs: dict[str, Any]) -> SCF:
         if self.chkfile:
             mol_hf.SCF.dump_chk(self, envs)
             with h5py.File(self.chkfile, 'a') as fh5:
@@ -143,7 +147,7 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
         # TODO need better way to adapt pyscf's check_sanity
         return self
 
-    def dump_flags(self, verbose=None):
+    def dump_flags(self, verbose: Any = None) -> SCF:
         mol_hf.SCF.dump_flags(self, verbose)
         logger.info(self, '******** PBC SCF flags ********')
         if hasattr(self, 'kpts'):
@@ -174,5 +178,4 @@ def normalize_dm_(mf: SCF, dm: ArrayLike, s1e: ArrayLike | None = None) -> Array
     # NOTE not tracing this function as it is mainly used
     # to generate the initial density matrix
     return stop_trace(pyscf_pbc_hf.normalize_dm_)(mf, dm, s1e=s1e)
-
 

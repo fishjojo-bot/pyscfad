@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import partial
+from typing import TYPE_CHECKING, Any
+
 import numpy
 #import jax
 
@@ -34,6 +38,10 @@ from pyscfad.gto._mole_helper import (
     get_fakemol_exp,
     get_fakemol_cs,
 )
+
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
 
 _MAX_DERIV_ORDER = 4
 #_DERIV_LABEL = []
@@ -86,9 +94,17 @@ _XYZ_ID = [
     ),
 ]
 
-def eval_gto(mol, eval_name, grid_coords,
-             comp=None, shls_slice=None, non0tab=None,
-             ao_loc=None, cutoff=None, out=None):
+def eval_gto(
+    mol: Mole,
+    eval_name: str,
+    grid_coords: ArrayLike,
+    comp: int | None = None,
+    shls_slice: tuple[int, ...] | None = None,
+    non0tab: ArrayLike | None = None,
+    ao_loc: ArrayLike | None = None,
+    cutoff: float | None = None,
+    out: Any = None,
+) -> Array:
     # FIXME non0tab makes ctr_coeff and exp derivatives wrong
     non0tab=None
     eval_name, comp = _get_intor_and_comp(mol, eval_name, comp)

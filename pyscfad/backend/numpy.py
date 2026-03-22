@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import Any
+
 from .config import get_backend
 
-def __getattr__(name):
+def __getattr__(name: str) -> Any:
     return getattr(get_backend(), name)

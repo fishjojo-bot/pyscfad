@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from pyscfad.cc import dfccsd
 
 class RDCSD(dfccsd.RCCSD):
     @property
-    def dcsd(self):
+    def dcsd(self) -> bool:
         return True

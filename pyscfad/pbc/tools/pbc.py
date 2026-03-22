@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from functools import wraps
 import warnings
@@ -286,9 +286,9 @@ def get_coulG(cell: Cell, k: ArrayLike = numpy.zeros(3), exx: bool | str = False
 
     return coulG
 
-get_monkhorst_pack_size = stop_trace(pyscf_pbctools.get_monkhorst_pack_size)
+get_monkhorst_pack_size: Any = stop_trace(pyscf_pbctools.get_monkhorst_pack_size)
 
-def cutoff_to_mesh(a, cutoff):
+def cutoff_to_mesh(a: ArrayLike, cutoff: float) -> Array:
     # Search the minimal x,y,z requiring |x*b[0]+y*b[1]+z*b[2]|^2 > 2 * cutoff
     b = 2 * np.pi * np.linalg.inv(a.T)
     rx = np.linalg.qr(b[np.array([1,2,0])].T)[1][2,2]

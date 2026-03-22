@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pyscfad.pbc.dft import rks
 from pyscfad.pbc.dft import krks
@@ -21,8 +21,8 @@ from pyscfad.pbc.dft import krks
 if TYPE_CHECKING:
     from pyscfad.pbc.gto import Cell
 
-def RKS(cell: Cell, *args, **kwargs) -> rks.RKS:
+def RKS(cell: Cell, *args: Any, **kwargs: Any) -> rks.RKS:
     return rks.RKS(cell, *args, **kwargs)
 
-def KRKS(cell: Cell, *args, **kwargs) -> krks.KRKS:
+def KRKS(cell: Cell, *args: Any, **kwargs: Any) -> krks.KRKS:
     return krks.KRKS(cell, *args, **kwargs)

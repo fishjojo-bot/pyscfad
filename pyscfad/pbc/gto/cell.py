@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Self
 
 import warnings
 import numpy
@@ -118,8 +118,17 @@ def shift_bas_center(cell0: Cell, r: ArrayLike) -> Cell:
     numpy.put(cell._env, idx, stop_grad(cell.coords).flatten())
     return cell
 
-def intor_cross(intor: str, cell1: Cell, cell2: Cell, comp: int | None = None, hermi: int = 0, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
-                shls_slice=None, **kwargs):
+def intor_cross(
+    intor: str,
+    cell1: Cell,
+    cell2: Cell,
+    comp: int | None = None,
+    hermi: int = 0,
+    kpts: ArrayLike | None = None,
+    kpt: ArrayLike | None = None,
+    shls_slice: tuple[int, ...] | None = None,
+    **kwargs: Any,
+) -> Array:
     intor, comp = _get_intor_and_comp(cell1._add_suffix(intor), comp)
 
     if kpts is None:
@@ -149,8 +158,16 @@ def intor_cross(intor: str, cell1: Cell, cell2: Cell, comp: int | None = None, h
         out = out[0]
     return out
 
-def pbc_intor(cell: Cell, intor: str, comp: int | None = None, hermi: int = 0, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
-              shls_slice=None, **kwargs) -> Array:
+def pbc_intor(
+    cell: Cell,
+    intor: str,
+    comp: int | None = None,
+    hermi: int = 0,
+    kpts: ArrayLike | None = None,
+    kpt: ArrayLike | None = None,
+    shls_slice: tuple[int, ...] | None = None,
+    **kwargs: Any,
+) -> Array:
     if kwargs:
         warnings.warn(f'Keyword arguments {list(kwargs.keys())} are ignored')
 
@@ -383,7 +400,7 @@ class Cell(mole.Mole, pyscf_cell.Cell):
     """
     _dynamic_attr = _keys = {'abc'}
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.coords = None
         self.exp = None
         self.ctr_coeff = None
@@ -391,7 +408,7 @@ class Cell(mole.Mole, pyscf_cell.Cell):
         self.abc = None
         pyscf_cell.Cell.__init__(self, **kwargs)
 
-    def build(self, *args, **kwargs):
+    def build(self, *args: Any, **kwargs: Any) -> Self:
         trace_coords = kwargs.pop('trace_coords', True)
         trace_exp = kwargs.pop('trace_exp', False)
         trace_ctr_coeff = kwargs.pop('trace_ctr_coeff', False)
@@ -416,20 +433,20 @@ class Cell(mole.Mole, pyscf_cell.Cell):
     def vol(self):
         return abs(np.linalg.det(self.lattice_vectors()))
 
-    def lattice_vectors(self):
+    def lattice_vectors(self) -> ArrayLike:
         if self.abc is None:
             return pyscf_cell.Cell.lattice_vectors(self)
         else:
             return self.abc
 
     @with_doc(pyscf_cell.Cell.get_scaled_atom_coords.__doc__)
-    def get_scaled_atom_coords(self, a=None):
+    def get_scaled_atom_coords(self, a: ArrayLike | None = None) -> Array:
         if a is None:
             a = self.lattice_vectors()
         return np.dot(self.atom_coords(), np.linalg.inv(a))
 
     @with_doc(pyscf_cell.Cell.reciprocal_vectors.__doc__)
-    def reciprocal_vectors(self, norm_to=2*np.pi):
+    def reciprocal_vectors(self, norm_to: float = 2*np.pi) -> Array:
         a = self.lattice_vectors()
         if self.dimension == 1:
             assert(abs(a[0] @ a[1]) < 1e-9 and
@@ -442,11 +459,11 @@ class Cell(mole.Mole, pyscf_cell.Cell):
         return norm_to * b
 
     @with_doc(pyscf_cell.Cell.get_abs_kpts.__doc__)
-    def get_abs_kpts(self, scaled_kpts):
+    def get_abs_kpts(self, scaled_kpts: ArrayLike) -> Array:
         return np.dot(scaled_kpts, self.reciprocal_vectors())
 
     @with_doc(pyscf_cell.Cell.get_scaled_kpts.__doc__)
-    def get_scaled_kpts(self, abs_kpts, kpts_in_ibz=True):
+    def get_scaled_kpts(self, abs_kpts: Any, kpts_in_ibz: bool = True) -> ArrayLike:
         from pyscf.pbc.lib.kpts import KPoints
         if isinstance(abs_kpts, KPoints):
             if kpts_in_ibz:
@@ -456,7 +473,7 @@ class Cell(mole.Mole, pyscf_cell.Cell):
         return 1./(2*np.pi)*np.dot(abs_kpts, self.lattice_vectors().T)
 
     @with_doc(pyscf_cell.Cell.cutoff_to_mesh.__doc__)
-    def cutoff_to_mesh(self, ke_cutoff):
+    def cutoff_to_mesh(self, ke_cutoff: float) -> Array:
         a = self.lattice_vectors()
         dim = self.dimension
         mesh = pbctools.cutoff_to_mesh(a, ke_cutoff)
@@ -464,14 +481,34 @@ class Cell(mole.Mole, pyscf_cell.Cell):
             mesh[dim:] = self.mesh[dim:]
         return mesh
 
-    def pbc_eval_gto(self, eval_name, coords, comp=None, kpts=None, kpt=None,
-                     shls_slice=None, non0tab=None, ao_loc=None, out=None):
+    def pbc_eval_gto(
+        self,
+        eval_name: str,
+        coords: ArrayLike,
+        comp: int | None = None,
+        kpts: ArrayLike | None = None,
+        kpt: ArrayLike | None = None,
+        shls_slice: tuple[int, ...] | None = None,
+        non0tab: ArrayLike | None = None,
+        ao_loc: ArrayLike | None = None,
+        out: Any = None,
+    ) -> Array:
         return pbc_eval_gto(self, eval_name, coords, comp, kpts, kpt,
                             shls_slice, non0tab, ao_loc, out)
     pbc_eval_ao = pbc_eval_gto
 
-    def eval_gto(self, eval_name, coords, comp=None, kpts=None, kpt=None,
-                 shls_slice=None, non0tab=None, ao_loc=None, out=None):
+    def eval_gto(
+        self,
+        eval_name: str,
+        coords: ArrayLike,
+        comp: int | None = None,
+        kpts: ArrayLike | None = None,
+        kpt: ArrayLike | None = None,
+        shls_slice: tuple[int, ...] | None = None,
+        non0tab: ArrayLike | None = None,
+        ao_loc: ArrayLike | None = None,
+        out: Any = None,
+    ) -> Array:
         if eval_name[:3] == 'PBC':
             return self.pbc_eval_gto(eval_name, coords, comp, kpts, kpt,
                                      shls_slice, non0tab, ao_loc, out)
@@ -479,7 +516,7 @@ class Cell(mole.Mole, pyscf_cell.Cell):
             return mole.eval_gto(self, eval_name, coords, comp,
                                  shls_slice, non0tab, ao_loc, out)
 
-    def to_pyscf(self):
+    def to_pyscf(self) -> pyscf_cell.Cell:
         cell = self.view(pyscf_cell.Cell)
         del cell.coords
         del cell.exp

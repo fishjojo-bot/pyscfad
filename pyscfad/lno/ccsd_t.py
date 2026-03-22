@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 '''Impurity (T) correction.
 '''
 
 from functools import partial
 import ctypes
 import numpy
+from typing import Any
 from jax import custom_vjp
 
 from pyscf.lib import (
@@ -32,7 +35,7 @@ from pyscfad import numpy as np
 from pyscfad.tools import timer
 from pyscfadlib import libcc_vjp as libcc
 
-def kernel(mycc, eris, ulo, t1=None, t2=None, verbose=logger.NOTE):
+def kernel(mycc: Any, eris: Any, ulo: Any, t1: Any = None, t2: Any = None, verbose: int = logger.NOTE) -> Any:
     log = logger.new_logger(mycc, verbose)
     if t1 is None:
         t1 = mycc.t1
@@ -59,7 +62,7 @@ def kernel(mycc, eris, ulo, t1=None, t2=None, verbose=logger.NOTE):
     del log
     return et
 
-def get_ovvv(ovvv, *slices):
+def get_ovvv(ovvv: Any, *slices: Any) -> Any:
     ovw = numpy.asarray(ovvv[slices])
     nocc, nvir, nvir_pair = ovw.shape
     ovvv = unpack_tril(ovw.reshape(nocc*nvir,nvir_pair))

@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
+from typing import TYPE_CHECKING, Any
+
 from pyscf.lib import logger
 
-def autofrag(mol, H2heavy=True):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+    from pyscfad.gto import Mole
+
+def autofrag(mol: Mole, H2heavy: bool = True) -> list[list[int]]:
     r'''Partition molecule into fragments.
 
     Args:
@@ -69,7 +77,12 @@ def _matpow(A, p):
     e, u = np.linalg.eigh(A)
     return np.dot(u*e**p, u.T)
 
-def map_lo_to_frag(mol, orbloc, frag_atmlist, verbose=None):
+def map_lo_to_frag(
+    mol: Mole,
+    orbloc: ArrayLike,
+    frag_atmlist: list[list[int]],
+    verbose: Any = None,
+) -> list[ArrayLike]:
     r''' Assign input LOs (assumed orthonormal) to fragments using the Lowdin charge.
 
     For each IAO 'i', a 1D array, [p_1, p_2, ... p_nfrag], is computed, where

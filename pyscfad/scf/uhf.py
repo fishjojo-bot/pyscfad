@@ -140,7 +140,7 @@ def get_grad(mo_coeff: ArrayLike, mo_occ: ArrayLike, fock_ao: ArrayLike) -> Arra
 
 
 class UHF(hf.SCF, pyscf_uhf.UHF):
-    def __init__(self, mol: Mole):
+    def __init__(self, mol: Mole) -> None:
         pyscf_uhf.UHF.__init__(self, mol)
 
     def eig(self, h: ArrayLike, s: ArrayLike) -> tuple[Array, Array]:
@@ -156,7 +156,7 @@ class UHF(hf.SCF, pyscf_uhf.UHF):
         dm_last: ArrayLike = 0,
         vhf_last: ArrayLike = 0,
         hermi: int = 1,
-        **kwargs,
+        **kwargs: Any,
     ) -> Array:
         if mol is None:
             mol = self.mol
@@ -204,4 +204,3 @@ class UHF(hf.SCF, pyscf_uhf.UHF):
     get_fock = get_fock
     make_rdm1 = module_method(make_rdm1, absences=['mo_coeff', 'mo_occ'])
     energy_elec = energy_elec
-

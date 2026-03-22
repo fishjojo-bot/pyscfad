@@ -19,7 +19,7 @@ from functools import partial
 import warnings
 from jax import tree_util
 
-def _dict_hash(this):
+def _dict_hash(this: Any) -> int:
     from pyscf.lib.misc import finger
     fg = []
     leaves, tree = tree_util.tree_flatten(this)
@@ -37,7 +37,7 @@ def _dict_hash(this):
     return hash(tuple(fg))
 
 
-def _dict_equality(d1, d2):
+def _dict_equality(d1: Any, d2: Any) -> bool:
     leaves1, tree1 = tree_util.tree_flatten(d1)
     leaves2, tree2 = tree_util.tree_flatten(d2)
     if tree1 != tree2:
@@ -71,7 +71,7 @@ def _dict_equality(d1, d2):
 
 
 class _AuxData:
-    def __init__(self, data: dict[str, Any], exclude_name: tuple[str, ...] = ()): 
+    def __init__(self, data: dict[str, Any], exclude_name: tuple[str, ...] = ()) -> None:
         self.data = dict(sorted(data.items()))
         self.exclude_name = exclude_name
 
@@ -82,18 +82,23 @@ class _AuxData:
         else:
             return self.data
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if self is other:
             return True
         if not isinstance(other, _AuxData):
             return False
         return _dict_equality(self.data_for_hash, other.data_for_hash)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return _dict_hash(self.data_for_hash)
 
 
-def class_as_pytree_node(cls, leaf_names, num_args=0, exclude_aux_name=()):
+def class_as_pytree_node(
+    cls: type[Any],
+    leaf_names: list[str] | tuple[str, ...],
+    num_args: int = 0,
+    exclude_aux_name: tuple[str, ...] = (),
+) -> type[Any]:
     def tree_flatten(obj):
         keys = obj.__dict__.keys()
         for leaf_name in leaf_names:
@@ -124,7 +129,7 @@ def class_as_pytree_node(cls, leaf_names, num_args=0, exclude_aux_name=()):
 
 
 class PytreeNodeMeta(type):
-    def __new__(mcls, name, bases, dct, **kwargs):
+    def __new__(mcls, name: str, bases: tuple[type[Any], ...], dct: dict[str, Any], **kwargs: Any) -> type[Any]:
         cls = super().__new__(mcls, name, bases, dct, **kwargs)
 
         def _collect_attr(name):
@@ -223,4 +228,3 @@ class PytreeNode(metaclass=PytreeNodeMeta):
                 self._cache = {}
     """
     pass
-

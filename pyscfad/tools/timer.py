@@ -14,9 +14,10 @@
 
 import sys
 import time
+from typing import TextIO
 
 class Timer:
-    def __init__(self, stdout=None):
+    def __init__(self, stdout: TextIO | None = None) -> None:
         if stdout is None:
             self.stdout = sys.stdout
         else:
@@ -24,7 +25,7 @@ class Timer:
 
         self._t0, self._w0 = (time.process_time(), time.perf_counter())
 
-    def timer(self, msg, stdout=None):
+    def timer(self, msg: str, stdout: TextIO | None = None) -> None:
         if stdout is None:
             stdout = self.stdout
 

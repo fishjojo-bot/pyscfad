@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import partial
+from typing import TYPE_CHECKING, Any
+
 import numpy
 import jax
 from jax import custom_vjp
@@ -25,6 +29,9 @@ from pyscfad.ops import vmap
 from pyscfad.lib import logger
 from pyscfad.ao2mo import _ao2mo
 from pyscfad.mp import mp2
+
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
 
 WITH_T2 = getattr(__config__, 'mp_dfmp2_with_t2', True)
 
@@ -138,8 +145,14 @@ def _contract_scan(Lov, mo_energy, nocc, nvir, with_t2=True):
         t2 = None
     return emp2, t2
 
-def kernel(mp, mo_energy=None, mo_coeff=None, eris=None, with_t2=WITH_T2,
-           verbose=None):
+def kernel(
+    mp: MP2,
+    mo_energy: ArrayLike | None = None,
+    mo_coeff: ArrayLike | None = None,
+    eris: mp2._ChemistsERIs | None = None,
+    with_t2: bool = WITH_T2,
+    verbose: Any = None,
+) -> tuple[Array, ArrayLike | None]:
     if mo_energy is not None or mo_coeff is not None:
         assert (mp.frozen == 0 or mp.frozen is None)
 
@@ -166,19 +179,30 @@ def kernel(mp, mo_energy=None, mo_coeff=None, eris=None, with_t2=WITH_T2,
 class MP2(mp2.MP2):
     _dynamic_attr = _keys = {'with_df'}
 
-    def __init__(self, mf, frozen=None, mo_coeff=None, mo_occ=None):
+    def __init__(
+        self,
+        mf: Any,
+        frozen: Any = None,
+        mo_coeff: ArrayLike | None = None,
+        mo_occ: ArrayLike | None = None,
+    ) -> None:
         super().__init__(mf, frozen=frozen, mo_coeff=mo_coeff, mo_occ=mo_occ)
         if getattr(mf, 'with_df', None):
             self.with_df = mf.with_df
         else:
             raise KeyError('The mean-field object has no density fitting.')
 
-    def ao2mo(self, mo_coeff=None):
+    def ao2mo(self, mo_coeff: ArrayLike | None = None) -> mp2._ChemistsERIs:
         eris = mp2._ChemistsERIs()
         eris._common_init_(self, mo_coeff)
         return eris
 
-    def loop_ao2mo(self, mo_coeff, nocc, with_t2=WITH_T2):
+    def loop_ao2mo(
+        self,
+        mo_coeff: ArrayLike,
+        nocc: int,
+        with_t2: bool = WITH_T2,
+    ) -> ArrayLike:
         # NOTE return the whole 3c integral for now
         nao, nmo = mo_coeff.shape
         nvir = nmo - nocc
@@ -197,7 +221,13 @@ class MP2(mp2.MP2):
         else:
             raise RuntimeError(f'{mem_incore+mem_now} MB of memory is needed.')
 
-    def kernel(self, mo_energy=None, mo_coeff=None, eris=None, with_t2=WITH_T2):
+    def kernel(
+        self,
+        mo_energy: ArrayLike | None = None,
+        mo_coeff: ArrayLike | None = None,
+        eris: mp2._ChemistsERIs | None = None,
+        with_t2: bool = WITH_T2,
+    ) -> tuple[Array, ArrayLike | None]:
         if self.verbose >= logger.WARN:
             self.check_sanity()
 
@@ -219,7 +249,13 @@ class MP2(mp2.MP2):
         self._finalize()
         return self.e_corr, self.t2
 
-    def init_amps(self, mo_energy=None, mo_coeff=None, eris=None, with_t2=WITH_T2):
+    def init_amps(
+        self,
+        mo_energy: ArrayLike | None = None,
+        mo_coeff: ArrayLike | None = None,
+        eris: mp2._ChemistsERIs | None = None,
+        with_t2: bool = WITH_T2,
+    ) -> tuple[Array, ArrayLike | None]:
         return kernel(self, mo_energy, mo_coeff, eris, with_t2)
 
 del WITH_T2

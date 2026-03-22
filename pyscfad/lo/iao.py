@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from jax import scipy as jsp
 from pyscf import __config__
 from pyscf.gto import format_atom
@@ -21,9 +25,19 @@ from pyscfad.lib import logger
 from pyscfad import gto
 from pyscfad.lo.orth import vec_lowdin
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
+
 MINAO = getattr(__config__, 'lo_iao_minao', 'minao')
 
-def iao(mol, orbocc, minao=MINAO, kpts=None, lindep_threshold=1e-8):
+def iao(
+    mol: Mole,
+    orbocc: ArrayLike,
+    minao: str = MINAO,
+    kpts: ArrayLike | None = None,
+    lindep_threshold: float = 1e-8,
+) -> Array:
     if mol.has_ecp() and minao == 'minao':
         logger.warn(mol, 'ECP/PP is used. MINAO is not a good reference AO basis in IAO.')
 
@@ -78,7 +92,7 @@ def iao(mol, orbocc, minao=MINAO, kpts=None, lindep_threshold=1e-8):
         iaos = np.asarray(iaos)
     return iaos
 
-def reference_mol(mol, minao=MINAO):
+def reference_mol(mol: Mole, minao: str = MINAO) -> Mole:
     '''Create a molecule which uses reference minimal basis'''
     pmol = mol.copy()
     atoms = format_atom(pmol.atom, unit=1)

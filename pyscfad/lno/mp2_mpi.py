@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import Any
+
 from pyscfad.lno import lno_base_mpi as lno_base
 from pyscfad.lno import mp2
 
 class LNOMP2(lno_base.LNO, mp2.LNOMP2):
-    pass
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)

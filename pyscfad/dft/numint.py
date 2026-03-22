@@ -366,15 +366,16 @@ def eval_rho(
     verbose: Any = None,
 ) -> Array:
     xctype = xctype.upper()
+    out: Array
 
     if xctype == 'LDA' or xctype == 'HF':
         c0 = np.dot(ao, dm)
-        rho = _contract_rho(ao, c0)
+        out = _contract_rho(ao, c0)
     elif xctype in ('GGA', 'NLC'):
-        rho = _rks_gga_assemble_rho(ao, dm, hermi)
+        out = _rks_gga_assemble_rho(ao, dm, hermi)
     else: # meta-GGA
-        rho = _rks_mgga_assemble_rho(ao, dm, hermi, with_lapl)
-    return rho
+        out = _rks_mgga_assemble_rho(ao, dm, hermi, with_lapl)
+    return out
 
 @partial(jit, static_argnames=['hermi'])
 def _rks_gga_assemble_rho(ao, dm, hermi):

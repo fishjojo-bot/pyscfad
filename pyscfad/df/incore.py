@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy
 from functools import partial
+from typing import TYPE_CHECKING, Any
+
 from jax import scipy
 from pyscf import __config__
 from pyscf.df.outcore import _guess_shell_ranges
@@ -39,12 +43,23 @@ from pyscfad.gto._mole_helper import (
 from pyscfad.gto._moleintor_helper import index_prompt_xyz
 from . import addons, _int3c_cross_opt
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
+
 MAX_MEMORY = getattr(__config__, 'df_outcore_max_memory', 2000)
 LINEAR_DEP_THR = getattr(__config__, 'df_df_DF_lindep', 1e-7)
 
 @partial(custom_jvp, nondiff_argnums=tuple(range(2,7)))
-def int3c_cross(mol, auxmol, intor='int3c2e', comp=1, aosym='s1',
-                shls_slice=None, out=None):
+def int3c_cross(
+    mol: Mole,
+    auxmol: Mole,
+    intor: str = 'int3c2e',
+    comp: int = 1,
+    aosym: str = 's1',
+    shls_slice: tuple[int, ...] | None = None,
+    out: Any = None,
+) -> Array:
     assert aosym == 's1'
     assert mol.cart == auxmol.cart
     pmol = mol + auxmol
@@ -65,8 +80,15 @@ def int3c_cross(mol, auxmol, intor='int3c2e', comp=1, aosym='s1',
     return ints
 
 @int3c_cross.defjvp
-def int3c_cross_jvp(intor, comp, aosym, shls_slice, out,
-                    primals, tangents):
+def int3c_cross_jvp(
+    intor: str,
+    comp: int,
+    aosym: str,
+    shls_slice: tuple[int, ...] | None,
+    out: Any,
+    primals: tuple[Mole, Mole],
+    tangents: tuple[Mole, Mole],
+) -> tuple[Array, Array]:
     mol, auxmol = primals
     mol_t, auxmol_t = tangents
     nbas = mol.nbas
@@ -250,9 +272,18 @@ def _int3c_fill_jvp_r0_ip2(mol, mol_t, ints):
     return jvp
 
 
-def cholesky_eri(mol, auxmol=None, auxbasis='weigend+etb',
-                 int3c='int3c2e', aosym='s2ij', int2c='int2c2e', comp=1,
-                 max_memory=MAX_MEMORY, verbose=0, fauxe2=None):
+def cholesky_eri(
+    mol: Mole,
+    auxmol: Mole | None = None,
+    auxbasis: Any = 'weigend+etb',
+    int3c: str = 'int3c2e',
+    aosym: str = 's2ij',
+    int2c: str = 'int2c2e',
+    comp: int = 1,
+    max_memory: float = MAX_MEMORY,
+    verbose: int = 0,
+    fauxe2: Any = None,
+) -> Array:
     if comp != 1:
         raise NotImplementedError
 

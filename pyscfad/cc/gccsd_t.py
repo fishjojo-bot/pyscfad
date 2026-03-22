@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import reduce
 import numpy
+from typing import Any
+
 from jax import numpy as np
 #from jax import jit
 from jax import scipy
@@ -22,7 +26,7 @@ from pyscf.lib import logger
 from pyscfad.ao2mo import _ao2mo
 
 
-def spatial2spin(tx, orbspin=None):
+def spatial2spin(tx: Any, orbspin: Any = None) -> Any:
     '''Convert T1/T2 of spatial orbital representation to T1/T2 of
     spin-orbital representation
     '''
@@ -168,7 +172,14 @@ def _make_df_eris_incore(cc, mo_coeff=None):
     return eris
 
 #@jit
-def kernel(cc, prj, eris=None, t1=None, t2=None, verbose=logger.NOTE):
+def kernel(
+    cc: Any,
+    prj: Any,
+    eris: Any = None,
+    t1: Any = None,
+    t2: Any = None,
+    verbose: int = logger.NOTE,
+) -> Any:
     log = logger.new_logger(cc, verbose)
     if t1 is None or t2 is None:
         t1, t2 = cc.t1, cc.t2

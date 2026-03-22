@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 '''
 CCSD(T)
 '''
+from typing import Any
+
 from pyscfad import numpy as np
 from pyscfad import config, config_update
 from pyscfad import lib
@@ -26,7 +30,7 @@ from pyscfad.tools.linear_solver import gen_gmres
 # t3 as ijkabc
 
 # JCP 94, 442 (1991); DOI:10.1063/1.460359.  Error in Eq (1), should be [ia] >= [jb] >= [kc]
-def kernel(mycc, eris, t1=None, t2=None, verbose=logger.NOTE):
+def kernel(mycc: Any, eris: Any, t1: Any = None, t2: Any = None, verbose: int = logger.NOTE) -> Any:
     log = logger.new_logger(mycc, verbose)
 
     if t1 is None: t1 = mycc.t1
@@ -127,7 +131,7 @@ def _compute_et(t1, t2, eris_vvov, eris_vooo, eris_vvoo,
 
 # iterative solver
 
-def get_ovvv(eris, *slices):
+def get_ovvv(eris: Any, *slices: Any) -> Any:
     ovw = np.asarray(eris.ovvv[slices])
     nocc, nvir, nvir_pair = ovw.shape
     with config_update('pyscfad_moleintor_opt', False):

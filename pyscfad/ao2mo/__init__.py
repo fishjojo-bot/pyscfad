@@ -18,9 +18,15 @@ from typing import Any
 from pyscfad.ao2mo import incore
 from pyscfad.ao2mo.addons import load, restore
 
-def general(eri_or_mol: Any, mo_coeffs: Any, *args,
-            erifile=None, dataname='eri_mo', intor='int2e',
-            **kwargs) -> Any:
+def general(
+    eri_or_mol: Any,
+    mo_coeffs: Any,
+    *args: Any,
+    erifile: Any = None,
+    dataname: str = 'eri_mo',
+    intor: str = 'int2e',
+    **kwargs: Any,
+) -> Any:
     if hasattr(eri_or_mol, 'shape'):
         return incore.general(eri_or_mol, mo_coeffs, *args, **kwargs)
     else:

@@ -29,8 +29,8 @@ def dump_scf(mol: Any, chkfile: str, e_tot: Any, mo_energy: Any, mo_coeff: Any, 
     else:
         save_mol(mol, chkfile)
 
-    scf_dic = {'e_tot'    : stop_grad(e_tot),
-               'mo_energy': stop_grad(mo_energy),
-               'mo_occ'   : stop_grad(mo_occ),
-               'mo_coeff' : stop_grad(mo_coeff)}
+    scf_dic: dict[str, Any] = {'e_tot'    : stop_grad(e_tot),
+                               'mo_energy': stop_grad(mo_energy),
+                               'mo_occ'   : stop_grad(mo_occ),
+                               'mo_coeff' : stop_grad(mo_coeff)}
     save(chkfile, 'scf', scf_dic)

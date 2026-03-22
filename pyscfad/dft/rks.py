@@ -161,14 +161,14 @@ def energy_elec(
     logger.debug(ks, 'E1 = %s  Ecoul = %s  Exc = %s', e1, vhf.ecoul, vhf.exc)
     return (e1+e2).real, e2
 
-def prune_small_rho_grids_(ks, mol: Mole, dm: ArrayLike, grids) -> Any:
+def prune_small_rho_grids_(ks: RKS, mol: Mole, dm: ArrayLike, grids: Any) -> Any:
     rho = ks._numint.get_rho(stop_grad(mol),
                              stop_grad(dm),
                              grids,
                              ks.max_memory)
     return grids.prune_by_density_(rho, ks.small_rho_cutoff)
 
-def _dft_common_init_(mf, xc: str = 'LDA,VWN') -> None:
+def _dft_common_init_(mf: Any, xc: str = 'LDA,VWN') -> None:
     mf.xc = xc
     mf.nlc = ''
     mf.disp = None
@@ -176,7 +176,7 @@ def _dft_common_init_(mf, xc: str = 'LDA,VWN') -> None:
     mf.nlcgrids = None
     mf._numint = numint.NumInt()
 
-def _dft_common_post_init_(mf) -> None:
+def _dft_common_post_init_(mf: Any) -> None:
     if mf.grids is None:
         mf.grids = gen_grid.Grids(stop_grad(mf.mol))
         mf.grids.level = getattr(

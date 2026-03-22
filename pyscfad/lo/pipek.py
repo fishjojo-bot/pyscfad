@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import reduce, partial
 import numpy
 import jax
+from typing import TYPE_CHECKING, Any
+
 from pyscf.lo import pipek as pyscf_pipek
 from pyscfad import numpy as np
 from pyscfad.ops import vmap
@@ -23,7 +27,16 @@ from pyscfad.soscf.ciah import extract_rotation
 from pyscfad.tools.linear_solver import gen_gmres
 from pyscfad.lo import orth, boys
 
-def atomic_pops(mol, mo_coeff, method='mulliken', s=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
+
+def atomic_pops(
+    mol: Mole,
+    mo_coeff: ArrayLike,
+    method: str = 'mulliken',
+    s: ArrayLike | None = None,
+) -> Array:
     method = method.lower().replace('_', '-')
     nmo = mo_coeff.shape[-1]
     proj = None
@@ -75,7 +88,13 @@ def atomic_pops(mol, mo_coeff, method='mulliken', s=None):
     return proj
 
 class PipekMezey(pyscf_pipek.PipekMezey):
-    def atomic_pops(self, mol, mo_coeff, method=None, s=None):
+    def atomic_pops(
+        self,
+        mol: Mole,
+        mo_coeff: ArrayLike,
+        method: str | None = None,
+        s: ArrayLike | None = None,
+    ) -> Array:
         if method is None:
             method = self.pop_method
         return numpy.asarray(atomic_pops(mol, mo_coeff, method, s=s))
@@ -85,7 +104,13 @@ class PipekMezey(pyscf_pipek.PipekMezey):
 
 PM = Pipek = PipekMezey
 
-def cost_function(x, mol, mo_coeff, pop_method='mulliken', exponent=2):
+def cost_function(
+    x: ArrayLike,
+    mol: Mole,
+    mo_coeff: ArrayLike,
+    pop_method: str = 'mulliken',
+    exponent: int = 2,
+) -> Array:
     u = extract_rotation(x)
     mo_coeff = np.dot(mo_coeff, u)
     pop = atomic_pops(mol, mo_coeff, pop_method)
@@ -122,10 +147,19 @@ def _pm(x, mol, mo_coeff, *,
     return x, sorted_idx
 
 
-def pm(mol, mo_coeff, *,
-       pop_method='mulliken', exponent=2, init_guess=None,
-       conv_tol=None, conv_tol_grad=None, max_cycle=None,
-       symmetry=False, gmres_options=None):
+def pm(
+    mol: Mole,
+    mo_coeff: ArrayLike,
+    *,
+    pop_method: str = 'mulliken',
+    exponent: int = 2,
+    init_guess: str | ArrayLike | None = None,
+    conv_tol: float | None = None,
+    conv_tol_grad: float | None = None,
+    max_cycle: int | None = None,
+    symmetry: bool = False,
+    gmres_options: dict[str, Any] | None = None,
+) -> Array:
     if mo_coeff.shape[-1] == 1:
         return mo_coeff
     if gmres_options is None:
@@ -155,10 +189,9 @@ def pm(mol, mo_coeff, *,
 
 pipekmezey = pm
 
-def jacobi_sweep(mlo):
+def jacobi_sweep(mlo: PipekMezey) -> PipekMezey:
     isstable, mo1 = mlo.stability_jacobi()
     if not isstable:
         mo = mlo.kernel(mo1)
         mlo = jacobi_sweep(mlo)
     return mlo
-

@@ -12,13 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 import numpy
 from pyscf.hessian import thermo
 from pyscf.data.nist import BOHR
 
-def harmonic_analysis(mol, hess, ir_tensor=None, raman_tensor=None,
-                      exclude_trans=True, exclude_rot=True,
-                      imaginary_freq=True):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+
+def harmonic_analysis(
+    mol: Any,
+    hess: ArrayLike,
+    ir_tensor: ArrayLike | None = None,
+    raman_tensor: ArrayLike | None = None,
+    exclude_trans: bool = True,
+    exclude_rot: bool = True,
+    imaginary_freq: bool = True,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     '''
     Computes harmonic vibrational frequency, normal modes,
     IR intensity, Raman activity, Depolarization ratio.
@@ -52,7 +65,7 @@ def harmonic_analysis(mol, hess, ir_tensor=None, raman_tensor=None,
     raman = compute_raman(raman_tensor, vibration)
     return vibration, ir, raman
 
-def compute_ir(ir_tensor, vibration):
+def compute_ir(ir_tensor: ArrayLike | None, vibration: dict[str, Any]) -> dict[str, Any]:
     ir = {'intensity': None} # km/mol
     if ir_tensor is None:
         return ir
@@ -63,7 +76,7 @@ def compute_ir(ir_tensor, vibration):
     ir['intensity'] = numpy.einsum('ki,ki->k', a, a) * unit_kmmol
     return ir
 
-def compute_raman(raman_tensor, vibration):
+def compute_raman(raman_tensor: ArrayLike | None, vibration: dict[str, Any]) -> dict[str, Any]:
     raman = {'activity': None, # A^4/amu
              'depolar_ratio': None}
     if raman_tensor is None:

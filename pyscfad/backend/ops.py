@@ -35,27 +35,27 @@ __all__ = [
     'index_mul',
 ]
 
-def __getattr__(name):
+def __getattr__(name: str) -> Any:
     return getattr(get_backend(), name)
 
-def is_array(x):
+def is_array(x: Any) -> bool:
     return get_backend().is_array(x)
 
 is_tensor = isarray = is_array
 
-def to_numpy(x):
+def to_numpy(x: Any) -> Any:
     return get_backend().to_numpy(x)
 
-def stop_gradient(x):
+def stop_gradient(x: Any) -> Any:
     return get_backend().stop_gradient(x)
 
 stop_grad = stop_gradient
 
-def stop_trace(fn):
+def stop_trace(fn: Callable[..., Any]) -> Callable[..., Any]:
     """Convenient wrapper to call functions with arguments
     detached from the graph.
     """
-    def wrapped_fn(*args, **kwargs):
+    def wrapped_fn(*args: Any, **kwargs: Any) -> Any:
         args_no_grad = [stop_grad(arg) for arg in args]
         kwargs_no_grad = {k : stop_grad(v) for k, v in kwargs.items()}
         return fn(*args_no_grad, **kwargs_no_grad)
@@ -68,12 +68,11 @@ def vmap(fun: Callable[..., Any], in_axes: Any = 0, out_axes: Any = 0, chunk_siz
     return get_backend().vmap(fun, in_axes=in_axes, out_axes=out_axes,
                               chunk_size=chunk_size, signature=signature)
 
-def index_update(x, idx, y):
+def index_update(x: Any, idx: Any, y: Any) -> Any:
     return get_backend().index_update(x, idx, y)
 
-def index_add(x, idx, y):
+def index_add(x: Any, idx: Any, y: Any) -> Any:
     return get_backend().index_add(x, idx, y)
 
-def index_mul(x, idx, y):
+def index_mul(x: Any, idx: Any, y: Any) -> Any:
     return get_backend().index_mul(x, idx, y)
-

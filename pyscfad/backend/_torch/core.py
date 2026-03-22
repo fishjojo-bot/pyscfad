@@ -29,4 +29,5 @@ def vmap(fun: Callable[..., Any], in_axes: Any = 0, out_axes: Any = 0, chunk_siz
 def jit(obj: Any, **kwargs) -> Any:
     # TODO make jit work
     #return torch.jit.script(obj, **kwargs)
-    return obj
+    out = obj
+    return out

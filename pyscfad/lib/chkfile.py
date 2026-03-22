@@ -19,7 +19,7 @@ import h5py
 
 # pylint: disable=consider-using-f-string
 def dump(chkfile: str, key: str, value: Any) -> None:
-    def save_as_group(key, value, root):
+    def save_as_group(key: str, value: Any, root: Any) -> None:
         if isinstance(value, dict):
             root1 = root.create_group(key)
             for k in value:

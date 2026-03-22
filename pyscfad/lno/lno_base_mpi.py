@@ -12,13 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from mpi4py import MPI
 import numpy
+from typing import TYPE_CHECKING, Any
+
 from pyscfad.ops import stop_trace
 from pyscfad.lno import lno_base
 from pyscfad.lno.tools import autofrag, map_lo_to_frag
 
-def partition_jobs(frag_lolist, frag_wghtlist):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+
+def partition_jobs(
+    frag_lolist: list[ArrayLike],
+    frag_wghtlist: list[ArrayLike],
+) -> tuple[list[ArrayLike], list[ArrayLike]]:
     comm = MPI.COMM_WORLD
     nproc = comm.Get_size()
     rank = comm.Get_rank()
@@ -28,18 +38,20 @@ def partition_jobs(frag_lolist, frag_wghtlist):
     return lolist, wghtlist
 
 class LNO(lno_base.LNO):
-    def kernel(self,
-               frag_lolist=None,
-               frag_wghtlist=None,
-               frag_atmlist=None,
-               lo_type=None,
-               no_type=None,
-               frag_nonvlist=None,
-               orbloc=None,
-               lo_init_guess=None,
-               lo_symmetry=False,
-               lo_options=None,
-               job_partition_list=None):
+    def kernel(
+        self,
+        frag_lolist: list[ArrayLike] | str | None = None,
+        frag_wghtlist: ArrayLike | None = None,
+        frag_atmlist: list[list[int]] | None = None,
+        lo_type: str | None = None,
+        no_type: str | None = None,
+        frag_nonvlist: Any = None,
+        orbloc: ArrayLike | None = None,
+        lo_init_guess: Any = None,
+        lo_symmetry: bool = False,
+        lo_options: dict[str, Any] | None = None,
+        job_partition_list: list[int] | None = None,
+    ) -> None:
         if lo_type is None:
             lo_type = self.lo_type
         if no_type is None:

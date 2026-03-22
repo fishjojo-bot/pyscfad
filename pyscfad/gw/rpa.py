@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 import numpy
 from pyscf.lib import logger, current_memory
 from pyscf.mp.mp2 import _mo_without_core, _mo_energy_without_core
@@ -22,7 +26,17 @@ from pyscfad.ops import vmap, jit
 from pyscfad import scf, dft
 from pyscfad.df.addons import restore
 
-def kernel(rpa, mo_energy, mo_coeff, Lpq=None, nw=None, verbose=logger.NOTE):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
+def kernel(
+    rpa: RPA,
+    mo_energy: ArrayLike,
+    mo_coeff: ArrayLike,
+    Lpq: ArrayLike | None = None,
+    nw: int | None = None,
+    verbose: Any = logger.NOTE,
+) -> tuple[Any, Any]:
     mf = rpa._scf
     # only support frozen core
     if rpa.frozen is not None:
@@ -47,7 +61,7 @@ def kernel(rpa, mo_energy, mo_coeff, Lpq=None, nw=None, verbose=logger.NOTE):
     return e_hf, e_corr
 
 @jit
-def get_rho_response(omega, mo_energy, Lpq):
+def get_rho_response(omega: float, mo_energy: ArrayLike, Lpq: ArrayLike) -> Array:
     '''
     Compute density response function in auxiliary basis at freq iw.
     '''
@@ -59,7 +73,7 @@ def get_rho_response(omega, mo_energy, Lpq):
     Pi = np.einsum('Pia, Qia -> PQ', Pia, Lpq)
     return Pi
 
-def get_rpa_ecorr(rpa, Lpq, freqs, wts):
+def get_rpa_ecorr(rpa: RPA, Lpq: ArrayLike, freqs: ArrayLike, wts: ArrayLike) -> Array:
     '''
     Compute RPA correlation energy
     '''
@@ -93,7 +107,13 @@ def get_rpa_ecorr(rpa, Lpq, freqs, wts):
 class RPA(pytree.PytreeNode, pyscf_rpa.RPA):
     _dynamic_attr = {'_scf', 'mol', 'with_df'}
 
-    def kernel(self, mo_energy=None, mo_coeff=None, Lpq=None, nw=40):
+    def kernel(
+        self,
+        mo_energy: ArrayLike | None = None,
+        mo_coeff: ArrayLike | None = None,
+        Lpq: ArrayLike | None = None,
+        nw: int = 40,
+    ) -> Array:
         '''
         Args:
             mo_energy : 1D array (nmo), mean-field mo energy
@@ -119,7 +139,7 @@ class RPA(pytree.PytreeNode, pyscf_rpa.RPA):
         del log
         return self.e_corr
 
-    def ao2mo(self, mo_coeff=None):
+    def ao2mo(self, mo_coeff: ArrayLike | None = None) -> Array:
         if mo_coeff is None:
             mo_coeff = self.mo_coeff
         nmo = self.nmo

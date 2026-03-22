@@ -53,10 +53,10 @@ def _scf_fixed_point(dm: ArrayLike, mf: SCF, s1e: ArrayLike, h1e: ArrayLike) -> 
     return dm
 
 
-def _scf(dm, mf, s1e, h1e, *,
-         conv_tol, conv_tol_grad, diis=None,
-         dump_chk=False, callback=None, log,
-         e_tot, vhf, cput1):
+def _scf(dm: ArrayLike, mf: SCF, s1e: ArrayLike, h1e: ArrayLike, *,
+         conv_tol: float, conv_tol_grad: float, diis: Any = None,
+         dump_chk: bool = False, callback: Any = None, log: Any,
+         e_tot: Any, vhf: Any, cput1: Any) -> tuple[ArrayLike, bool, Any, Any, Any, Any]:
     scf_conv = False
     fock_last = None
     mol = mf.mol

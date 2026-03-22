@@ -28,14 +28,14 @@ if TYPE_CHECKING:
 
 class UniformGrids(pyscf_gen_grid.UniformGrids):
     @property
-    def coords(self):
+    def coords(self) -> Array:
         if self._coords is not None:
             return self._coords
         else:
             return get_uniform_grids(self.cell, self.mesh)
 
     @property
-    def weights(self):
+    def weights(self) -> Array:
         if self._weights is not None:
             return self._weights
         else:

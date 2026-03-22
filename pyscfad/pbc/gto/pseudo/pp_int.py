@@ -27,7 +27,7 @@ def get_gth_vlocG_part1(cell: Cell, Gv: ArrayLike) -> Array:
     from pyscfad.pbc import tools
     coulG = tools.get_coulG(cell, Gv=Gv)
     G2 = np.einsum('ix,ix->i', Gv, Gv)
-    G0idx = np.where(G2==0)[0]
+    G0idx: Array = np.where(G2==0)[0]
 
     if cell.dimension != 2 or cell.low_dim_ft_type == 'inf_vacuum':
         vlocG = np.zeros((cell.natm, len(G2)))

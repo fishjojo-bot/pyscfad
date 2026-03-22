@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from jax import numpy as np
 from pyscf.lib import current_memory
 from pyscfad.lib import logger
@@ -20,8 +24,11 @@ from pyscfad import ao2mo
 from pyscfad.cc import ccsd
 from pyscfad.cc import rintermediates as imd
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+
 @jit
-def update_amps(cc, t1, t2, eris):
+def update_amps(cc: RCCSD, t1: ArrayLike, t2: ArrayLike, eris: _ChemistsERIs) -> tuple[ArrayLike, ArrayLike]:
     nocc, nvir = t1.shape
     fock = eris.fock
     mo_e_o = eris.mo_energy[:nocc]
@@ -57,7 +64,7 @@ def update_amps(cc, t1, t2, eris):
     return t1new, t2new
 
 @jit
-def amplitude_equation(cc, t1, t2, eris):
+def amplitude_equation(cc: RCCSD, t1: ArrayLike, t2: ArrayLike, eris: _ChemistsERIs) -> tuple[ArrayLike, ArrayLike]:
     nocc, nvir = t1.shape
     fock = eris.fock
 
@@ -144,10 +151,22 @@ def amplitude_equation(cc, t1, t2, eris):
     return t1new, t2new
 
 class RCCSD(ccsd.CCSD):
-    def kernel(self, t1=None, t2=None, eris=None, mbpt2=False):
+    def kernel(
+        self,
+        t1: ArrayLike | None = None,
+        t2: ArrayLike | None = None,
+        eris: _ChemistsERIs | None = None,
+        mbpt2: bool = False,
+    ) -> tuple[Any, Any, Any, Any]:
         return self.ccsd(t1, t2, eris, mbpt2)
 
-    def ccsd(self, t1=None, t2=None, eris=None, mbpt2=False):
+    def ccsd(
+        self,
+        t1: ArrayLike | None = None,
+        t2: ArrayLike | None = None,
+        eris: _ChemistsERIs | None = None,
+        mbpt2: bool = False,
+    ) -> tuple[Any, Any, Any, Any]:
         if mbpt2:
             raise NotImplementedError
 
@@ -155,7 +174,7 @@ class RCCSD(ccsd.CCSD):
             eris = self.ao2mo(self.mo_coeff)
         return ccsd.CCSD.ccsd(self, t1, t2, eris)
 
-    def ao2mo(self, mo_coeff=None):
+    def ao2mo(self, mo_coeff: ArrayLike | None = None) -> _ChemistsERIs:
         nmo = self.nmo
         nao = self.mo_coeff.shape[0]
         nmo_pair = nmo * (nmo+1) // 2

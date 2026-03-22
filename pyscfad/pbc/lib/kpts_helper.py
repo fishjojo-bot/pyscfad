@@ -20,5 +20,6 @@ from pyscf.pbc.lib.kpts_helper import KPT_DIFF_TOL
 from pyscfad.ops import stop_grad
 
 def is_zero(kpt: Any) -> bool:
-    return abs(numpy.asarray(stop_grad(kpt))).sum() < KPT_DIFF_TOL
+    out = abs(numpy.asarray(stop_grad(kpt))).sum() < KPT_DIFF_TOL
+    return out
 gamma_point = is_zero

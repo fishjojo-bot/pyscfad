@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy
 from jax import numpy as np
@@ -144,7 +144,7 @@ def get_pp(mydf: FFTDF, kpts: ArrayLike | None = None) -> Array:
 # sometimes lose tracing of its attributes
 #@util.pytree_node(['cell','kpts'])
 class FFTDF(pyscf_fft.FFTDF):
-    def __init__(self, cell, kpts=numpy.zeros((1,3))):#, **kwargs):
+    def __init__(self, cell: Cell, kpts: ArrayLike = numpy.zeros((1,3))) -> None:#, **kwargs):
         from pyscfad.pbc.dft import numint
         self.cell = cell
         self.stdout = cell.stdout
@@ -169,8 +169,17 @@ class FFTDF(pyscf_fft.FFTDF):
         grids.mesh = self.mesh
         return grids
 
-    def get_jk(self, dm, hermi=1, kpts=None, kpts_band=None,
-               with_j=True, with_k=True, omega=None, exxdiv=None):
+    def get_jk(
+        self,
+        dm: ArrayLike,
+        hermi: int = 1,
+        kpts: ArrayLike | None = None,
+        kpts_band: ArrayLike | None = None,
+        with_j: bool = True,
+        with_k: bool = True,
+        omega: float | None = None,
+        exxdiv: Any = None,
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
         from pyscfad.pbc.df import fft_jk
         if omega is not None:  # J/K for RSH functionals
             raise NotImplementedError
@@ -194,7 +203,12 @@ class FFTDF(pyscf_fft.FFTDF):
                 vj = fft_jk.get_j_kpts(self, dm, hermi, kpts, kpts_band)
         return vj, vk
 
-    def aoR_loop(self, grids=None, kpts=None, deriv=0):
+    def aoR_loop(
+        self,
+        grids: Any = None,
+        kpts: ArrayLike | None = None,
+        deriv: int = 0,
+    ) -> Any:
         if grids is None:
             grids = self.grids
             cell = self.cell

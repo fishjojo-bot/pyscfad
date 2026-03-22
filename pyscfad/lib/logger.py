@@ -14,12 +14,13 @@
 
 # pylint: skip-file
 import re
+from typing import Any
 import jax
 from pyscf.lib import logger
 from pyscf.lib.logger import *
 from pyscfad import util
 
-def _partial_eval_msg(msg, args):
+def _partial_eval_msg(msg: str, args: tuple[Any, ...]) -> tuple[str, list[Any]]:
     format_specifier = re.compile(r'%(?:\d+\$)?[#0\-+ ]?(?:\d+)?(?:\.\d+)?[hlL]?[a-zA-Z]')
     matches = list(format_specifier.finditer(msg))
     partially_evaluated_msg = ''
@@ -47,7 +48,7 @@ def _partial_eval_msg(msg, args):
     partially_evaluated_msg += msg[last_end:]
     return partially_evaluated_msg, tracer_args
 
-def flush(rec, msg, *args):
+def flush(rec: Any, msg: str, *args: Any) -> None:
     msg, args = _partial_eval_msg(msg, args)
 
     def _flush(*args):
@@ -60,7 +61,12 @@ def flush(rec, msg, *args):
     else:
         _flush(*args)
 
-def timer(rec, msg, cpu0=None, wall0=None):
+def timer(
+    rec: Any,
+    msg: str,
+    cpu0: float | None = None,
+    wall0: float | None = None,
+) -> float | tuple[float, float]:
     if cpu0 is None:
         cpu0 = rec._t0
     if wall0 is None:
@@ -77,7 +83,7 @@ def timer(rec, msg, cpu0=None, wall0=None):
             flush(rec, '    CPU time for %s %9.2f sec' % (msg, rec._t0-cpu0))
         return rec._t0
 
-def get_t0(rec):
+def get_t0(rec: Any) -> tuple[float, float]:
     return (rec._t0, rec._w0)
 
 # FIXME monkey patch
@@ -85,4 +91,3 @@ logger.flush = flush
 logger.timer = timer
 logger.Logger.timer = timer
 logger.Logger.get_t0 = get_t0
-

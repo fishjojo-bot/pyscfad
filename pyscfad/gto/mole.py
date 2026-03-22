@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import wraps
+from typing import TYPE_CHECKING, Any, Self
+
 from pyscf.gto import mole as pyscf_mole
 from pyscf.lib import logger, param
 from pyscfad import numpy as np
@@ -21,10 +25,17 @@ from pyscfad.gto.moleintor import intor_cross, intor #pylint: disable=unused-imp
 from pyscfad.gto.eval_gto import eval_gto
 from pyscfad.gto._mole_helper import setup_exp, setup_ctr_coeff
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
 Traced_Attributes = ['coords', 'exp', 'ctr_coeff', 'r0']
 Exclude_Aux_Names = ('verbose',)
 
-def inter_distance(mol=None, coords=None, Ls=None):
+def inter_distance(
+    mol: Mole | None = None,
+    coords: ArrayLike | None = None,
+    Ls: ArrayLike | None = None,
+) -> Array:
     """Atom distance array.
 
     Parameters
@@ -54,7 +65,11 @@ def inter_distance(mol=None, coords=None, Ls=None):
     return r
 
 @wraps(pyscf_mole.classical_coulomb_energy)
-def classical_coulomb_energy(mol, charges=None, coords=None):
+def classical_coulomb_energy(
+    mol: Mole,
+    charges: ArrayLike | None = None,
+    coords: ArrayLike | None = None,
+) -> Array | float:
     if charges is None:
         charges = np.asarray(mol.atom_charges(), dtype=float)
     if len(charges) <= 1:
@@ -66,7 +81,7 @@ def classical_coulomb_energy(mol, charges=None, coords=None):
 
 energy_nuc = classical_coulomb_energy
 
-def nao_nr_range(mol, bas_id0, bas_id1):
+def nao_nr_range(mol: Mole, bas_id0: int, bas_id1: int) -> tuple[int, int]:
     from pyscf.gto.moleintor import make_loc
     if mol.cart:
         key = 'cart'
@@ -95,14 +110,14 @@ class Mole(pytree.PytreeNode, pyscf_mole.Mole):
     """
     _dynamic_attr = _keys = ['coords', 'exp', 'ctr_coeff', 'r0']
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.coords = None
         self.exp = None
         self.ctr_coeff = None
         self.r0 = None
         super().__init__(**kwargs)
 
-    def atom_coords(self, unit='Bohr'):
+    def atom_coords(self, unit: str = 'Bohr') -> Array:
         if self.coords is None:
             return np.asarray(super().atom_coords(unit))
         else:
@@ -111,8 +126,13 @@ class Mole(pytree.PytreeNode, pyscf_mole.Mole):
             else:
                 return self.coords
 
-    def set_geom_(self, atoms_or_coords, unit=None, symmetry=None,
-                  inplace=True):
+    def set_geom_(
+        self,
+        atoms_or_coords: Any,
+        unit: str | None = None,
+        symmetry: Any = None,
+        inplace: bool = True,
+    ) -> Self:
         mol = pyscf_mole.Mole.set_geom_(self, atoms_or_coords,
                                         unit=unit, symmetry=symmetry, inplace=inplace)
         if self.coords is not None:
@@ -123,7 +143,7 @@ class Mole(pytree.PytreeNode, pyscf_mole.Mole):
             mol.ctr_coeff = np.asarray(setup_ctr_coeff(mol)[0])
         return mol
 
-    def build(self, *args, **kwargs):
+    def build(self, *args: Any, **kwargs: Any) -> Self:
         trace_coords = kwargs.pop('trace_coords', True)
         trace_exp = kwargs.pop('trace_exp', True)
         trace_ctr_coeff = kwargs.pop('trace_ctr_coeff', True)
@@ -139,24 +159,32 @@ class Mole(pytree.PytreeNode, pyscf_mole.Mole):
             self.ctr_coeff = np.asarray(setup_ctr_coeff(self)[0])
         if trace_r0:
             raise NotImplementedError
+        return self
 
     energy_nuc = energy_nuc
     eval_ao = eval_gto = eval_gto
 
     @wraps(pyscf_mole.Mole.intor)
-    def intor(self, intor_name, comp=None, hermi=0, aosym='s1', out=None,
-              shls_slice=None, grids=None):
+    def intor(
+        self,
+        intor_name: str,
+        comp: int | None = None,
+        hermi: int = 0,
+        aosym: str = 's1',
+        out: Any = None,
+        shls_slice: tuple[int, ...] | None = None,
+        grids: ArrayLike | None = None,
+    ) -> Array:
         if not self._built:
             logger.warn(self, 'intor envs of %s not initialized.', self)
         intor_name = self._add_suffix(intor_name)
         return intor(self, intor_name, comp=comp, hermi=hermi,
                      aosym=aosym, out=out, shls_slice=shls_slice, grids=grids)
 
-    def to_pyscf(self):
+    def to_pyscf(self) -> pyscf_mole.Mole:
         mol = self.view(pyscf_mole.Mole)
         del mol.coords
         del mol.exp
         del mol.ctr_coeff
         del mol.r0
         return mol
-

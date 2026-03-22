@@ -38,7 +38,12 @@ def get_ovlp(mf: KSCF, cell: Cell | None = None, kpts: ArrayLike | None = None) 
         kpts = mf.kpts
     return pbchf.get_ovlp(cell, kpts)
 
-def get_hcore(mf: KSCF, cell: Cell | None = None, kpts: ArrayLike | None = None, **kwargs) -> Array:
+def get_hcore(
+    mf: KSCF,
+    cell: Cell | None = None,
+    kpts: ArrayLike | None = None,
+    **kwargs: Any,
+) -> Array:
     if cell is None:
         cell = mf.cell
     if kpts is None:
@@ -120,8 +125,12 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
     mo_energy : array
         MO energies.
     """
-    def __init__(self, cell: Cell, kpts: ArrayLike = numpy.zeros((1,3)),
-                 exxdiv=getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald')):
+    def __init__(
+        self,
+        cell: Cell,
+        kpts: ArrayLike = numpy.zeros((1,3)),
+        exxdiv: str = getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald'),
+    ) -> None:
         if not cell._built:
             sys.stderr.write('Warning: cell.build() is not called in input\n')
             cell.build()

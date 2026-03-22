@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import reduce
+from typing import TYPE_CHECKING, Any
+
 import numpy
 from pyscf import symm
 from pyscf.scf import hf_symm
@@ -26,9 +30,17 @@ from pyscfad.lib.linalg_helper import davidson1
 from pyscfad import ao2mo
 from pyscfad.gto import mole
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
 Traced_Attributes = ['_scf', 'mol']
 
-def gen_tda_operation(mf, fock_ao=None, singlet=True, wfnsym=None):
+def gen_tda_operation(
+    mf: Any,
+    fock_ao: ArrayLike | None = None,
+    singlet: bool = True,
+    wfnsym: int | str | None = None,
+) -> tuple[Any, Array]:
     mol = mf.mol
     mo_coeff = mf.mo_coeff
     #assert (mo_coeff.dtype == numpy.double)
@@ -85,7 +97,12 @@ def gen_tda_operation(mf, fock_ao=None, singlet=True, wfnsym=None):
     return vind, hdiag
 gen_tda_hop = gen_tda_operation
 
-def get_ab(mf, mo_energy=None, mo_coeff=None, mo_occ=None):
+def get_ab(
+    mf: Any,
+    mo_energy: ArrayLike | None = None,
+    mo_coeff: ArrayLike | None = None,
+    mo_occ: ArrayLike | None = None,
+) -> tuple[Array, Array]:
     r'''A and B matrices for TDDFT response function.
 
     A[i,a,j,b] = \delta_{ab}\delta_{ij}(E_a - E_i) + (ia||bj)
@@ -128,7 +145,18 @@ def get_ab(mf, mo_energy=None, mo_coeff=None, mo_occ=None):
     b += b_hf
     return a, b
 
-def cis_ovlp(mol1, mol2, mo1, mo2, nocc1, nocc2, nmo1, nmo2, x1, x2):
+def cis_ovlp(
+    mol1: Any,
+    mol2: Any,
+    mo1: ArrayLike,
+    mo2: ArrayLike,
+    nocc1: int,
+    nocc2: int,
+    nmo1: int,
+    nmo2: int,
+    x1: ArrayLike,
+    x2: ArrayLike,
+) -> Array:
     s_ao = mole.intor_cross('int1e_ovlp', mol1, mol2)
     nvir1 = nmo1 - nocc1
 
@@ -166,16 +194,16 @@ def cis_ovlp(mol1, mol2, mo1, mo2, nocc1, nocc2, nmo1, nmo2, x1, x2):
 # pylint: disable=abstract-method
 @util.pytree_node(Traced_Attributes, num_args=1)
 class TDBase(pyscf_tdrhf.TDBase):
-    def __init__(self, mf, **kwargs):
+    def __init__(self, mf: Any, **kwargs: Any) -> None:
         pyscf_tdrhf.TDBase.__init__(self, mf)
         self.__dict__.update(kwargs)
 
-    def get_ab(self, mf=None):
+    def get_ab(self, mf: Any = None) -> tuple[Array, Array]:
         if mf is None:
             mf = self._scf
         return get_ab(mf)
 
-    def get_precond(self, hdiag):
+    def get_precond(self, hdiag: ArrayLike) -> Any:
         def precond(x, e, x0):
             diagd = hdiag - (e-self.level_shift)
             diagd = ops.index_update(diagd, ops.index[abs(diagd)<1e-8], 1e-8)
@@ -186,12 +214,16 @@ class TDBase(pyscf_tdrhf.TDBase):
 class TDA(TDBase, pyscf_tdrhf.TDA):
     max_space = 50
 
-    def gen_vind(self, mf=None):
+    def gen_vind(self, mf: Any = None) -> tuple[Any, Array]:
         if mf is None:
             mf = self._scf
         return gen_tda_hop(mf, singlet=self.singlet, wfnsym=self.wfnsym)
 
-    def kernel(self, x0=None, nstates=None):
+    def kernel(
+        self,
+        x0: ArrayLike | None = None,
+        nstates: int | None = None,
+    ) -> tuple[ArrayLike, list[tuple[Array, int]]]:
         cpu0 = (logger.process_clock(), logger.perf_counter())
         self.check_sanity()
         self.dump_flags()

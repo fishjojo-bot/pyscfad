@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import wraps
+from typing import TYPE_CHECKING, Any
+
 from pyscf.df import df_jk as pyscf_df_jk
 from pyscfad import config
 from pyscfad import numpy as np
@@ -20,7 +24,17 @@ from pyscfad import pytree
 from .addons import restore
 from ._df_jk_opt import get_jk as get_jk_opt
 
-def get_jk(dfobj, dm, hermi=1, with_j=True, with_k=True, direct_scf_tol=1e-13):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+
+def get_jk(
+    dfobj,
+    dm: ArrayLike,
+    hermi: int = 1,
+    with_j: bool = True,
+    with_k: bool = True,
+    direct_scf_tol: float = 1e-13,
+) -> tuple[ArrayLike, ArrayLike]:
     if config.moleintor_opt:
         return get_jk_opt(dfobj, dm, hermi=hermi,
                           with_j=with_j, with_k=with_k,
@@ -30,7 +44,14 @@ def get_jk(dfobj, dm, hermi=1, with_j=True, with_k=True, direct_scf_tol=1e-13):
                           with_j=with_j, with_k=with_k,
                           direct_scf_tol=direct_scf_tol)
 
-def get_jk_gen(dfobj, dm, hermi=1, with_j=True, with_k=True, direct_scf_tol=1e-13):
+def get_jk_gen(
+    dfobj,
+    dm: ArrayLike,
+    hermi: int = 1,
+    with_j: bool = True,
+    with_k: bool = True,
+    direct_scf_tol: float = 1e-13,
+) -> tuple[ArrayLike, ArrayLike]:
     nao = dfobj.mol.nao
     dms = dm.reshape(-1, nao, nao)
     Lpq = restore('s1', dfobj._cderi, nao)
@@ -47,7 +68,12 @@ def get_jk_gen(dfobj, dm, hermi=1, with_j=True, with_k=True, direct_scf_tol=1e-1
     return vj, vk
 
 @wraps(pyscf_df_jk.density_fit)
-def density_fit(mf, auxbasis=None, with_df=None, only_dfj=False):
+def density_fit(
+    mf,
+    auxbasis: Any = None,
+    with_df: Any = None,
+    only_dfj: bool = False,
+) -> _DFHF:
     # pylint: disable=import-outside-toplevel
     from pyscfad import scf
     from .df import DF # pylint: disable=cyclic-import
@@ -76,8 +102,15 @@ def density_fit(mf, auxbasis=None, with_df=None, only_dfj=False):
 class _DFHF(pytree.PytreeNode, pyscf_df_jk._DFHF):
     _dynamic_attr = {'mol', 'with_df'}
 
-    def get_jk(self, mol=None, dm=None, hermi=1, with_j=True, with_k=True,
-               omega=None):
+    def get_jk(
+        self,
+        mol: Any = None,
+        dm: ArrayLike | None = None,
+        hermi: int = 1,
+        with_j: bool = True,
+        with_k: bool = True,
+        omega: float | None = None,
+    ) -> tuple[ArrayLike, ArrayLike | None]:
         if dm is None:
             dm = self.make_rdm1()
 
@@ -92,4 +125,3 @@ class _DFHF(pytree.PytreeNode, pyscf_df_jk._DFHF):
         if with_k and not with_dfk:
             vk = super().get_jk(mol, dm, hermi, False, True, omega)[1]
         return vj, vk
-

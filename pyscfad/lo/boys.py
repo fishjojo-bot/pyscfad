@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy
 import jax
+from typing import TYPE_CHECKING, Any
+
 from pyscf.lib import logger
 from pyscf.lo import boys as pyscf_boys
 from pyscfad import numpy as np
@@ -25,9 +29,18 @@ from pyscfad.soscf.ciah import (
 from pyscfad.tools.linear_solver import gen_gmres
 from pyscfad.scipy.linalg import logm
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
+
 # modified from pyscf v2.6
-def kernel(localizer, mo_coeff=None, callback=None, verbose=None,
-           return_u=False):
+def kernel(
+    localizer: Boys,
+    mo_coeff: ArrayLike | None = None,
+    callback: Any = None,
+    verbose: Any = None,
+    return_u: bool = False,
+) -> Array | tuple[Array, ArrayLike]:
     from pyscf.tools import mo_mapping
     from pyscf.soscf import ciah
     if mo_coeff is not None:
@@ -103,7 +116,7 @@ def kernel(localizer, mo_coeff=None, callback=None, verbose=None,
 
 
 class Boys(pyscf_boys.Boys):
-    def get_init_guess(self, key='atomic'):
+    def get_init_guess(self, key: str | ArrayLike = 'atomic') -> ArrayLike:
         if hasattr(key, 'shape'):
             u0 = numpy.asarray(key)
         else:
@@ -113,7 +126,7 @@ class Boys(pyscf_boys.Boys):
     kernel = kernel
 
 
-def dipole_integral(mol, mo_coeff):
+def dipole_integral(mol: Mole, mo_coeff: ArrayLike) -> Array:
     # FIXME do we need charge center response?
     #charge_center = numpy.einsum('z,zx->x', mol.atom_charges(),
     #                             stop_grad(mol.atom_coords()))
@@ -125,7 +138,7 @@ def dipole_integral(mol, mo_coeff):
         dip = np.einsum('ui,xuv,vj->xij', mo_coeff.conj(), r, mo_coeff)
     return dip
 
-def cost_function(x, mol, mo_coeff):
+def cost_function(x: ArrayLike, mol: Mole, mo_coeff: ArrayLike) -> Array:
     u = extract_rotation(x)
     mo_coeff = np.dot(mo_coeff, u)
     dip = dipole_integral(mol, mo_coeff)
@@ -178,10 +191,17 @@ def _boys(x, mol, mo_coeff, *,
     x = _extract_x0(loc, u)
     return x, sorted_idx
 
-def boys(mol, mo_coeff, *,
-         init_guess=None,
-         conv_tol=None, conv_tol_grad=None, max_cycle=None,
-         symmetry=False, gmres_options=None):
+def boys(
+    mol: Mole,
+    mo_coeff: ArrayLike,
+    *,
+    init_guess: str | ArrayLike | None = None,
+    conv_tol: float | None = None,
+    conv_tol_grad: float | None = None,
+    max_cycle: int | None = None,
+    symmetry: bool = False,
+    gmres_options: dict[str, Any] | None = None,
+) -> Array:
     '''
     Boys localization. See also `pyscf.lo.boys.Boys`.
 

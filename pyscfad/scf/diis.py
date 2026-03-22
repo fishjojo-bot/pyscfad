@@ -14,6 +14,10 @@
 """
 DIIS
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from pyscf.scf import diis as pyscf_cdiis
 from pyscfad import numpy as np
 from pyscfad import ops
@@ -21,12 +25,15 @@ from pyscfad.ops import jit, vmap
 from pyscfad import lib
 from pyscfad.lib import logger
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
 class CDIIS(lib.diis.DIIS, pyscf_cdiis.CDIIS):
-    def __init__(self, mf=None, filename=None, Corth=None):
+    def __init__(self, mf: Any = None, filename: str | None = None, Corth: ArrayLike | None = None) -> None:
         pyscf_cdiis.CDIIS.__init__(self, mf=mf, filename=filename, Corth=Corth)
         self.incore = True
 
-    def update(self, s, d, f, *args, **kwargs):
+    def update(self, s: ArrayLike, d: ArrayLike, f: ArrayLike, *args: Any, **kwargs: Any) -> Array:
         errvec = get_err_vec(s, d, f, self.Corth)
         # no need to trace error vectors
         errvec = ops.stop_grad(errvec)
@@ -42,7 +49,7 @@ class CDIIS(lib.diis.DIIS, pyscf_cdiis.CDIIS):
         return xnew
 
 @jit
-def get_err_vec_orig(s, d, f):
+def get_err_vec_orig(s: ArrayLike, d: ArrayLike, f: ArrayLike) -> Array:
     def _get_errvec(s, d, f):
         sdf = s @ d @ f
         return (sdf.conj().T - sdf).ravel()
@@ -65,7 +72,7 @@ def get_err_vec_orig(s, d, f):
     return errvec
 
 @jit
-def get_err_vec_orth(s, d, f, Corth):
+def get_err_vec_orth(s: ArrayLike, d: ArrayLike, f: ArrayLike, Corth: ArrayLike) -> Array:
     def _get_errvec(s, d, f, c):
         sdf = c.conj().T @ s @ d @ f @ c
         return (sdf.conj().T - sdf).ravel()
@@ -87,7 +94,12 @@ def get_err_vec_orth(s, d, f, Corth):
         raise RuntimeError('Unknown SCF DIIS type')
     return errvec
 
-def get_err_vec(s, d, f, Corth=None):
+def get_err_vec(
+    s: ArrayLike,
+    d: ArrayLike,
+    f: ArrayLike,
+    Corth: ArrayLike | None = None,
+) -> Array:
     if Corth is None:
         return get_err_vec_orig(s, d, f)
     else:

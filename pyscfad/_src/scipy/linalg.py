@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy
 import scipy
+from typing import Any
 
-def logm(A, disp=True, real=False):
+def logm(A: Any, disp: bool = True, real: bool = False) -> Any:
     """Compute matrix logarithm.
 
     Compute the matrix logarithm ensuring that it is real
@@ -104,4 +107,3 @@ def logm(A, disp=True, real=False):
 
     else:
         return scipy.linalg.logm(A, disp=disp)
-

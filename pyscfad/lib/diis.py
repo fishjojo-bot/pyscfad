@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import Any
+
 import numpy
 import scipy
 from pyscf.lib import diis as pyscf_diis
@@ -22,7 +26,7 @@ from pyscfad.lib import logger
 
 # pylint: disable=consider-using-f-string
 class DIIS(pyscf_diis.DIIS):
-    def push_vec(self, x):
+    def push_vec(self, x: Any) -> None:
         x = x.ravel()
 
         if len(self._bookkeep) >= self.space:
@@ -53,7 +57,7 @@ class DIIS(pyscf_diis.DIIS):
                 raise NotImplementedError('outcore diis not supported')
             self._head += 1
 
-    def update(self, x, xerr=None):
+    def update(self, x: Any, xerr: Any = None) -> Any:
         if xerr is not None:
             self.push_err_vec(xerr)
         self.push_vec(x)
@@ -85,7 +89,7 @@ class DIIS(pyscf_diis.DIIS):
                 raise NotImplementedError('outcore diis not supported')
         return xnew.reshape(x.shape)
 
-    def extrapolate(self, nd=None):
+    def extrapolate(self, nd: int | None = None) -> Any:
         if nd is None:
             nd = self.get_num_vec()
         if nd == 0:

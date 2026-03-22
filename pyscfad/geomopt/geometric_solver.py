@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import uuid
 import tempfile
+from typing import TYPE_CHECKING, Any, Callable
+
 import geometric
 
 import numpy
@@ -22,9 +26,18 @@ from pyscf import lib
 from pyscf.lib import logger
 from pyscf.geomopt.addons import dump_mol_geometry
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
+
 class PySCFADEngine(geometric.engine.Engine):
-    def __init__(self, mol, value_and_grad,
-                 maxsteps=100, callback=None):
+    def __init__(
+        self,
+        mol: Mole,
+        value_and_grad: Callable[[Mole], tuple[ArrayLike, ArrayLike]],
+        maxsteps: int = 100,
+        callback: Callable[[dict[str, Any]], Any] | None = None,
+    ) -> None:
         molecule = geometric.molecule.Molecule()
         molecule.elem = [mol.atom_symbol(i) for i in range(mol.natm)]
         molecule.xyzs = [mol.atom_coords()*lib.param.BOHR]  # In Angstrom
@@ -39,7 +52,7 @@ class PySCFADEngine(geometric.engine.Engine):
         self.e_last = 0
         #self.assert_convergence = assert_convergence
 
-    def calc_new(self, coords, dirname):
+    def calc_new(self, coords: ArrayLike, dirname: str) -> dict[str, Array]:
         if self.cycle >= self.maxsteps:
             raise NotConvergedError( 'Geometry optimization is not converged in '
                                     f'{self.maxsteps} iterations')
@@ -72,9 +85,14 @@ class PySCFADEngine(geometric.engine.Engine):
             self.callback(locals())
         return {'energy': energy, 'gradient': gradients.ravel()}
 
-def kernel(mol, value_and_grad,
-           constraints=None, callback=None,
-           maxsteps=100, **kwargs):
+def kernel(
+    mol: Mole,
+    value_and_grad: Callable[[Mole], tuple[ArrayLike, ArrayLike]],
+    constraints: Any = None,
+    callback: Callable[[dict[str, Any]], Any] | None = None,
+    maxsteps: int = 100,
+    **kwargs: Any,
+) -> tuple[bool, Mole]:
     engine = PySCFADEngine(mol, value_and_grad)
     engine.callback = callback
     engine.maxsteps = maxsteps

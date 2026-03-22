@@ -14,6 +14,8 @@
 
 import tempfile
 import numpy
+from typing import Any
+
 from pyscf import __config__
 from pyscf import lib as pyscf_lib
 from pyscf.lib import logger
@@ -25,12 +27,12 @@ from pyscfad.df import addons, incore, df_jk
 @util.pytree_node(['mol', 'auxmol', '_cderi'], num_args=1)
 class DF(pyscf_df.DF):
     # pylint: disable=redefined-outer-name
-    def __init__(self, mol, auxbasis=None, incore=True, **kwargs):
+    def __init__(self, mol: Any, auxbasis: Any = None, incore: bool = True, **kwargs: Any) -> None:
         pyscf_df.DF.__init__(self, mol, auxbasis=auxbasis)
         self.incore = incore
         self.__dict__.update(kwargs)
 
-    def build(self):
+    def build(self) -> DF:
         log = logger.new_logger(self)
 
         self.check_sanity()
@@ -61,7 +63,7 @@ class DF(pyscf_df.DF):
         del log
         return self
 
-    def reset(self, mol=None):
+    def reset(self, mol: Any = None) -> DF:
         '''Reset mol and clean up relevant attributes for scanner mode'''
         if mol is not None:
             self.mol = mol
@@ -76,15 +78,21 @@ class DF(pyscf_df.DF):
         self._rsh_df = {}
         return self
 
-    def get_naoaux(self):
+    def get_naoaux(self) -> int:
         # NOTE incore only
         if self._cderi is None:
             self.build()
         return self._cderi.shape[0]
 
-    def get_jk(self, dm, hermi=1, with_j=True, with_k=True,
-               direct_scf_tol=getattr(__config__, 'scf_hf_SCF_direct_scf_tol', 1e-13),
-               omega=None):
+    def get_jk(
+        self,
+        dm: Any,
+        hermi: int = 1,
+        with_j: bool = True,
+        with_k: bool = True,
+        direct_scf_tol: float = getattr(__config__, 'scf_hf_SCF_direct_scf_tol', 1e-13),
+        omega: float | None = None,
+    ) -> tuple[Any, Any]:
         if self._cderi is None:
             self.build()
         if omega is None:
@@ -92,7 +100,7 @@ class DF(pyscf_df.DF):
         else:
             raise NotImplementedError
 
-    def loop(self, blksize=None, to_numpy=True):
+    def loop(self, blksize: int | None = None, to_numpy: bool = True) -> Any:
         # NOTE By default (to_numpy=True)
         # we do not trace this function so that it can be used by pyscf
         if self._cderi is None:
@@ -113,4 +121,3 @@ class DF(pyscf_df.DF):
                 raise NotImplementedError
 
     to_pyscf = util.to_pyscf
-

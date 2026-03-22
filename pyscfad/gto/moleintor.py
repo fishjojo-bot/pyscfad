@@ -12,11 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from pyscf.lib import logger
 from pyscfad import config
 
-def intor(mol, intor_name, comp=None, hermi=0, aosym='s1', out=None,
-          shls_slice=None, grids=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
+
+def intor(
+    mol: Mole,
+    intor_name: str,
+    comp: int | None = None,
+    hermi: int = 0,
+    aosym: str = 's1',
+    out: Any = None,
+    shls_slice: tuple[int, ...] | None = None,
+    grids: ArrayLike | None = None,
+) -> Array:
     if config.moleintor_opt:
         from pyscfad.gto._moleintor_vjp import (intor2c, intor3c, intor4c)
     else:
@@ -49,6 +65,12 @@ def intor(mol, intor_name, comp=None, hermi=0, aosym='s1', out=None,
     else:
         raise KeyError(f'Unknown integral name: {intor_name}.')
 
-def intor_cross(intor_name, mol1, mol2, comp=None, grids=None):
+def intor_cross(
+    intor_name: str,
+    mol1: Mole,
+    mol2: Mole,
+    comp: int | None = None,
+    grids: ArrayLike | None = None,
+) -> Array:
     from pyscfad.gto._moleintor_jvp import intor_cross as _intor_cross
     return _intor_cross(intor_name, mol1, mol2, comp=comp, grids=grids)

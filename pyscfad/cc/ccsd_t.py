@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import ctypes
 import numpy
+from typing import Any
+
 from jax import custom_vjp
 from jax.tree_util import tree_flatten_with_path, tree_unflatten
 from pyscf.lib import (
@@ -25,7 +29,13 @@ from pyscf.cc import ccsd_t as pyscf_ccsd_t
 from pyscfad.lib import logger
 from pyscfadlib import libcc_vjp as libcc
 
-def kernel(mycc, eris, t1=None, t2=None, verbose=logger.NOTE):
+def kernel(
+    mycc: Any,
+    eris: Any,
+    t1: Any = None,
+    t2: Any = None,
+    verbose: int = logger.NOTE,
+) -> Any:
     if t1 is None:
         t1 = mycc.t1
     if t2 is None:

@@ -21,7 +21,11 @@ from functools import partial
 from pyscfad import ops
 from pyscfad import pytree
 
-def pytree_node(leaf_names, num_args=0, exclude_aux_name=()):
+def pytree_node(
+    leaf_names: list[str] | tuple[str, ...],
+    num_args: int = 0,
+    exclude_aux_name: tuple[str, ...] = (),
+) -> Any:
     """Class decorator that registers the underlying class as a pytree.
 
     See `jax document <https://jax.readthedocs.io/en/latest/pytrees.html>`_

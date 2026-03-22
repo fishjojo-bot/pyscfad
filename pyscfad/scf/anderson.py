@@ -14,14 +14,15 @@
 """
 Anderson mixing
 """
+from __future__ import annotations
+
 from typing import NamedTuple, Any
 import operator
 import jax
 from jax import tree
 from pyscfad import numpy as np
 from pyscfad import pytree
-
-Array = Any
+from pyscfad.typing import Array
 
 def _tree_scale_sum(a, xs):
     return tree.map(lambda x: np.tensordot(a, x, axes=1), xs)
@@ -112,7 +113,7 @@ class Anderson(pytree.PytreeNode):
         ridge: float = 1e-10,
         damp: float = 0,
         start_cycle: int = 1,
-    ):
+    ) -> None:
         self.space = space
         self.ridge = ridge
         self.damp = damp
@@ -122,7 +123,7 @@ class Anderson(pytree.PytreeNode):
     def init_state(
         self,
         param: Any,
-    ) -> NamedTuple:
+    ) -> AndersonState:
         m = self.space
         param_hist = tree.map(lambda x: np.tile(x, [m]+[1]*x.ndim), param)
         res_hist = tree.map(np.zeros_like, param_hist)

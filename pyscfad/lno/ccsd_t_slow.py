@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 '''Impurity (T) correction (slow version).
 '''
+
+from typing import Any
 
 from pyscf.lib import logger
 from pyscfad import numpy as np
@@ -21,7 +25,7 @@ from pyscfad import config_update
 from pyscfad import lib
 from pyscfad.ops import jit, vmap
 
-def get_ovvv(ovvv, *slices):
+def get_ovvv(ovvv: Any, *slices: Any) -> Any:
     ovw = np.asarray(ovvv[slices])
     nocc, nvir, nvir_pair = ovw.shape
     with config_update('pyscfad_moleintor_opt', False):
@@ -30,7 +34,7 @@ def get_ovvv(ovvv, *slices):
     return ovvv.reshape(nocc,nvir,nvir1,nvir1)
 
 
-def kernel(mycc, eris, ulo, t1=None, t2=None, verbose=logger.NOTE):
+def kernel(mycc: Any, eris: Any, ulo: Any, t1: Any = None, t2: Any = None, verbose: int = logger.NOTE) -> Any:
     log = logger.new_logger(mycc, verbose)
 
     if t1 is None: t1 = mycc.t1
@@ -128,9 +132,9 @@ def _compute_et(mat, t1, t2, eris_vvov, eris_vooo, eris_vvoo,
     return et
 
 
-def iterative_kernel(mycc, eris, ulo, t1=None, t2=None,
-                     max_cycle=50, tol=1e-8, tolnormt=1e-6,
-                     verbose=logger.NOTE):
+def iterative_kernel(mycc: Any, eris: Any, ulo: Any, t1: Any = None, t2: Any = None,
+                     max_cycle: int = 50, tol: float = 1e-8, tolnormt: float = 1e-6,
+                     verbose: int = logger.NOTE) -> Any:
     from pyscfad.cc import ccsd_t_slow as ccsdt
     mat = np.dot(ulo.T, ulo)
 

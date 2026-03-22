@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy
 from pyscf import __config__
@@ -34,8 +34,17 @@ if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike, Array
     from pyscfad.pbc.gto import Cell
 
-def get_veff(ks, cell: Cell | None = None, dm: ArrayLike | None = None, dm_last: ArrayLike = 0, vhf_last: ArrayLike = 0, hermi: int = 1,
-             kpt: ArrayLike | None = None, kpts_band: ArrayLike | None = None, **kwargs) -> VXC:
+def get_veff(
+    ks: RKS,
+    cell: Cell | None = None,
+    dm: ArrayLike | None = None,
+    dm_last: ArrayLike = 0,
+    vhf_last: VXC | ArrayLike = 0,
+    hermi: int = 1,
+    kpt: ArrayLike | None = None,
+    kpts_band: ArrayLike | None = None,
+    **kwargs: Any,
+) -> VXC:
     if cell is None:
         cell = ks.cell
     if dm is None:
@@ -95,7 +104,7 @@ def get_veff(ks, cell: Cell | None = None, dm: ArrayLike | None = None, dm_last:
     del log
     return vxc
 
-def _dft_common_init_(mf, xc='LDA,VWN', **kwargs):
+def _dft_common_init_(mf, xc: str = 'LDA,VWN', **kwargs: Any) -> None:
     from pyscfad.pbc.scf import khf
     mf.xc = xc
     mf.grids = None
@@ -111,7 +120,7 @@ def _dft_common_init_(mf, xc='LDA,VWN', **kwargs):
     else:
         mf._numint = numint.NumInt()
 
-def _dft_common_post_init_(mf):
+def _dft_common_post_init_(mf) -> None:
     from pyscf.pbc.gto import Cell
     if mf.grids is None:
         mf.grids = gen_grid.UniformGrids(mf.cell.view(Cell))
@@ -140,8 +149,13 @@ class RKS(KohnShamDFT, pbchf.RHF):
     -----
     Grid response is not considered with AD.
     """
-    def __init__(self, cell: Cell, xc: str = 'LDA,VWN', kpt: ArrayLike = numpy.zeros(3),
-                 exxdiv=getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald')):
+    def __init__(
+        self,
+        cell: Cell,
+        xc: str = 'LDA,VWN',
+        kpt: ArrayLike = numpy.zeros(3),
+        exxdiv: str = getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald'),
+    ) -> None:
         pbchf.RHF.__init__(self, cell, kpt, exxdiv)
         KohnShamDFT.__init__(self, xc)
         # NOTE this has to be after __dict__ update,

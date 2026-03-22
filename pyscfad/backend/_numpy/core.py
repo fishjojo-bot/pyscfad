@@ -31,7 +31,7 @@ def vmap(fun: Callable[..., Any], in_axes: Any = 0, out_axes: int = 0, chunk_siz
     if not isinstance(out_axes, int):
         raise NotImplementedError
 
-    def vmap_f(*args):
+    def vmap_f(*args: Any) -> Any:
         if isinstance(in_axes, int):
             in_axes_loc = (in_axes,) * len(args)
         else:

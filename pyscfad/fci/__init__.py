@@ -12,13 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import reduce
+from typing import TYPE_CHECKING, Any
+
 from pyscfad import numpy as np
 from pyscfad import ao2mo
 from pyscfad.fci import fci_slow
 from pyscfad.fci.fci_slow import fci_ovlp
 
-def solve_fci(mf, nroots=1):
+if TYPE_CHECKING:
+    from pyscfad.scf.hf import SCF
+
+def solve_fci(mf: SCF, nroots: int = 1) -> tuple[Any, Any]:
     mol = mf.mol
     mo_coeff = mf.mo_coeff
     norb = mo_coeff.shape[-1]

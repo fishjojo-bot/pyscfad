@@ -42,7 +42,7 @@ def restore(symmetry: int | str, eri: Any, norb: int, tao=None) -> Any:
         raise NotImplementedError
 
 
-def _convert_s4_to_s1(eri, norb):
+def _convert_s4_to_s1(eri: Any, norb: int) -> Any:
     npair = norb*(norb+1)//2
     eri = eri.reshape(npair,npair)
     eri = vmap(lib.unpack_tril, (0,None))(eri, lib.SYMMETRIC)

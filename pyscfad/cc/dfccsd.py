@@ -12,16 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from pyscf.lib import square_mat_in_trilu_indices
 from pyscfad import numpy as np
 from pyscfad import lib
 from pyscfad.ao2mo import _ao2mo
 from pyscfad.cc import ccsd
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+
 class RCCSD(ccsd.CCSD):
     _dynamic_attr = _keys = {'with_df'}
 
-    def __init__(self, mf, frozen=None, mo_coeff=None, mo_occ=None):
+    def __init__(
+        self,
+        mf: Any,
+        frozen: Any = None,
+        mo_coeff: ArrayLike | None = None,
+        mo_occ: ArrayLike | None = None,
+    ) -> None:
         super().__init__(mf, frozen=frozen, mo_coeff=mo_coeff, mo_occ=mo_occ)
 
         if getattr(mf, 'with_df', None):
@@ -29,10 +42,17 @@ class RCCSD(ccsd.CCSD):
         else:
             raise KeyError('The mean-field object has no density fitting.')
 
-    def ao2mo(self, mo_coeff=None):
+    def ao2mo(self, mo_coeff: ArrayLike | None = None) -> _ChemistsERIs:
         return _make_df_eris_incore(self, mo_coeff)
 
-def _contract_vvvv_t2(mycc, mol, Lvv, t2, out=None, verbose=None):
+def _contract_vvvv_t2(
+    mycc: RCCSD,
+    mol: Any,
+    Lvv: ArrayLike,
+    t2: ArrayLike,
+    out: Any = None,
+    verbose: Any = None,
+) -> ArrayLike:
     '''Ht2 = numpy.einsum('ijcd,acbd->ijab', t2, vvvv)
     '''
     nvir = t2.shape[-1]

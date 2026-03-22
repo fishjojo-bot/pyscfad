@@ -110,7 +110,13 @@ def is_hybrid_xc(xc_code: str | dict[str, dict[str, Any]] | None) -> bool:
         return libxc_is_hybrid_xc(xc_code)
 
 @partial(jit, static_argnames=("spin", "deriv"))
-def _eval_xc(xc_code, rho, spin=0, deriv=1, omega=None):
+def _eval_xc(
+    xc_code: str | dict[str, dict[str, Any]],
+    rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+    spin: int = 0,
+    deriv: int = 1,
+    omega: float | None = None,
+) -> ArrayLike:
     if omega is not None:
         raise NotImplementedError
     xctype = xc_type(xc_code)
@@ -208,7 +214,7 @@ def eval_xc1(
     idx = _libxc_to_xcfun_indices(xctype, spin, deriv)
     return out[idx]
 
-def _eval_xc_u2r(exc, xctype, deriv):
+def _eval_xc_u2r(exc: ArrayLike, xctype: str, deriv: int) -> ArrayLike:
     if deriv == 0:
         return exc
 

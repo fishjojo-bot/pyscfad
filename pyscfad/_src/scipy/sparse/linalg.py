@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import reduce
 import numpy
 import scipy
+from typing import Any, Callable
 from scipy.sparse.linalg import LinearOperator, eigsh
 from scipy.sparse.linalg import gmres as scipy_gmres
 from pyscfad import ops
 
-def _matvec_to_scipy(matvec, b):
-    def _matvec(x):
+def _matvec_to_scipy(matvec: Callable[[Any], Any], b: Any) -> LinearOperator:
+    def _matvec(x: Any) -> Any:
         Ax = matvec(x.reshape(b.shape)).ravel()
         # NOTE result may not be writable
         # (required by scipy>=1.12), so make a copy
@@ -28,9 +31,19 @@ def _matvec_to_scipy(matvec, b):
     A = LinearOperator((b.size, b.size), matvec=_matvec, dtype=b.dtype)
     return A
 
-def gmres(A_or_matvec, b, x0=None, *,
-          tol=1e-05, atol=None, restart=None, maxiter=None, M=None,
-          callback=None, callback_type=None):
+def gmres(
+    A_or_matvec: Any,
+    b: Any,
+    x0: Any = None,
+    *,
+    tol: float = 1e-05,
+    atol: Any = None,
+    restart: int | None = None,
+    maxiter: int | None = None,
+    M: Any = None,
+    callback: Any = None,
+    callback_type: Any = None,
+) -> tuple[Any, Any]:
     if x0 is not None:
         x0 = x0.ravel()
 
@@ -54,9 +67,20 @@ def gmres(A_or_matvec, b, x0=None, *,
     return u.reshape(b.shape), info
 
 
-def gmres_safe(A_or_matvec, b, x0=None, *,
-               tol=1e-05, atol=None, restart=None, maxiter=None, M=None,
-               callback=None, callback_type=None, cond=1e-6):
+def gmres_safe(
+    A_or_matvec: Any,
+    b: Any,
+    x0: Any = None,
+    *,
+    tol: float = 1e-05,
+    atol: Any = None,
+    restart: int | None = None,
+    maxiter: int | None = None,
+    M: Any = None,
+    callback: Any = None,
+    callback_type: Any = None,
+    cond: float = 1e-6,
+) -> tuple[Any, Any]:
     if callable(A_or_matvec):
         A = _matvec_to_scipy(A_or_matvec, b)
     else:

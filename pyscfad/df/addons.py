@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import Any
+
 from pyscf.df import addons as pyscf_addons
 from pyscfad import numpy as np
 from pyscfad import lib
@@ -19,10 +23,10 @@ from pyscfad import ao2mo
 from pyscfad.gto._mole_helper import setup_exp, setup_ctr_coeff
 
 class load(ao2mo.load):
-    def __init__(self, eri, dataname='j3c'):
+    def __init__(self, eri: Any, dataname: str = 'j3c') -> None:
         ao2mo.load.__init__(self, eri, dataname)
 
-def make_auxmol(mol, auxbasis=None):
+def make_auxmol(mol: Any, auxbasis: Any = None) -> Any:
     auxmol = pyscf_addons.make_auxmol(mol, auxbasis=auxbasis)
     if mol.exp is not None:
         auxmol.exp = np.asarray(setup_exp(auxmol)[0])
@@ -30,7 +34,7 @@ def make_auxmol(mol, auxbasis=None):
         auxmol.ctr_coeff = np.asarray(setup_ctr_coeff(auxmol)[0])
     return auxmol
 
-def restore(symmetry, cderi, nao):
+def restore(symmetry: int | str, cderi: Any, nao: int) -> Any:
     '''convert the three center integral between different
     permutation symmetries
     '''

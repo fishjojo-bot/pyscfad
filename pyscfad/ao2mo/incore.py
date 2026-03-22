@@ -21,7 +21,13 @@ from pyscfad import numpy as np
 from pyscfad import lib
 from pyscfad.ops import jit, vmap
 
-def full(eri_ao, mo_coeff, verbose=0, compact=True, **kwargs):
+def full(
+    eri_ao: Any,
+    mo_coeff: Any,
+    verbose: int = 0,
+    compact: bool = True,
+    **kwargs: Any,
+) -> Any:
     nao = mo_coeff.shape[0]
     if eri_ao.size != nao**4:
         raise NotImplementedError

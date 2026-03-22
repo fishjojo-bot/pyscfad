@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 '''
 Intermediates for restricted CCSD.  Complex integrals are supported.
 '''
+from typing import Any
+
 from pyscfad import numpy as np
 #from pyscfad.lib import jit
 
@@ -24,7 +28,7 @@ from pyscfad import numpy as np
 ### Eqs. (37)-(39) "kappa"
 
 #@jit
-def cc_Foo(t1, t2, eris):
+def cc_Foo(t1: Any, t2: Any, eris: Any) -> Any:
     nocc, nvir = t1.shape
     foo = eris.fock[:nocc,:nocc]
     eris_ovov = np.asarray(eris.ovov)
@@ -36,7 +40,7 @@ def cc_Foo(t1, t2, eris):
     return Fki
 
 #@jit
-def cc_Fvv(t1, t2, eris):
+def cc_Fvv(t1: Any, t2: Any, eris: Any) -> Any:
     nocc, nvir = t1.shape
     fvv = eris.fock[nocc:,nocc:]
     eris_ovov = np.asarray(eris.ovov)
@@ -48,7 +52,7 @@ def cc_Fvv(t1, t2, eris):
     return Fac
 
 #@jit
-def cc_Fov(t1, t2, eris):
+def cc_Fov(t1: Any, t2: Any, eris: Any) -> Any:
     nocc, nvir = t1.shape
     fov = eris.fock[:nocc,nocc:]
     eris_ovov = np.asarray(eris.ovov)
@@ -59,7 +63,7 @@ def cc_Fov(t1, t2, eris):
 
 ### Eqs. (40)-(41) "lambda"
 #@jit
-def Loo(t1, t2, eris):
+def Loo(t1: Any, t2: Any, eris: Any) -> Any:
     nocc, nvir = t1.shape
     fov = eris.fock[:nocc,nocc:]
     Lki = cc_Foo(t1, t2, eris) + np.einsum('kc,ic->ki',fov, t1)
@@ -69,7 +73,7 @@ def Loo(t1, t2, eris):
     return Lki
 
 #@jit
-def Lvv(t1, t2, eris):
+def Lvv(t1: Any, t2: Any, eris: Any) -> Any:
     nocc, nvir = t1.shape
     fov = eris.fock[:nocc,nocc:]
     Lac = cc_Fvv(t1, t2, eris) - np.einsum('kc,ka->ac',fov, t1)

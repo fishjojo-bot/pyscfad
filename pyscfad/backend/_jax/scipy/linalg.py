@@ -15,7 +15,11 @@
 """
 Custom jax.scipy.linalg functions
 """
+from __future__ import annotations
+
 from functools import partial
+from typing import Any
+
 import warnings
 import jax
 from jax import jit
@@ -28,14 +32,14 @@ from ..lax import linalg as lax_linalg
 def eigh(a: Any, b: Any = None, *,
          lower: bool = True,
          eigvals_only: bool = False,
-         overwrite_a=False,
-         overwrite_b=False,
-         type=1,
-         check_finite=False,
-         subset_by_index=None,
-         subset_by_value=None,
-         driver=None,
-         deg_thresh=1e-9):
+         overwrite_a: bool = False,
+         overwrite_b: bool = False,
+         type: int = 1,
+         check_finite: bool = False,
+         subset_by_index: Any = None,
+         subset_by_value: Any = None,
+         driver: Any = None,
+         deg_thresh: float = 1e-9) -> Any:
     if overwrite_a or overwrite_b:
         warnings.warn('Arguments \'overwrite_a\' and \'overwrite_b\' have no effect.')
     if check_finite:
@@ -62,9 +66,9 @@ def _eigh(a, b, lower, itype, eigvals_only, deg_thresh):
     else:
         return w, v
 
-def svd(a, full_matrices=True, compute_uv=True,
-        overwrite_a=False, check_finite=False,
-        lapack_driver=None):
+def svd(a: Any, full_matrices: bool = True, compute_uv: bool = True,
+        overwrite_a: bool = False, check_finite: bool = False,
+        lapack_driver: Any = None) -> Any:
     if overwrite_a:
         warnings.warn('Argument \'overwrite_a\' has no effect.')
     if check_finite:
@@ -122,5 +126,4 @@ def _svd_jvp(primals, tangents):
     dV = dV.at[..., m:, :m].set(dD2.conj().T)
     dV = V @ dV
     return (U, s, Vt), (dU, ds, _H(dV))
-
 

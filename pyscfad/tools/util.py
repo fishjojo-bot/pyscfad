@@ -12,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from pyscfad import numpy as np
 from pyscfad.soscf.ciah import extract_rotation
 
-def rotate_mo1(mo_coeff, x):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
+def rotate_mo1(mo_coeff: ArrayLike, x: ArrayLike) -> Array:
     u = extract_rotation(x)
     return np.dot(mo_coeff, u)
 
-def rotate_mo1_ov(mo_coeff, x, nocc):
+def rotate_mo1_ov(mo_coeff: ArrayLike, x: ArrayLike, nocc: int) -> Array:
     u = extract_rotation(x)
     u = u.at[:nocc,:nocc].set(0)
     u = u.at[nocc:,nocc:].set(0)

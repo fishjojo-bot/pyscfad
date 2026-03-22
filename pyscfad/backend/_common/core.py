@@ -23,26 +23,35 @@ def stop_gradient(x: Any) -> Any:
 class custom_jvp:
     """Fake ``custom_jvp`` that does nothing.
     """
-    def __init__(self, fun: Callable[..., Any], *args, **kwargs):
+    def __init__(self, fun: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         self.fun = fun
         self.jvp = None
 
-    def defjvp(self, jvp):
+    def defjvp(self, jvp: Callable[..., Any]) -> Callable[..., Any]:
         self.jvp = jvp
         return jvp
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self.fun(*args, **kwargs)
 
-def jit(fun, **kwargs):
+def jit(fun: Callable[..., Any], **kwargs: Any) -> Callable[..., Any]:
     return fun
 
-def pure_callback(callback, result_shape_dtypes,
-                  *args, sharding=None, vmap_method=None,
-                  **kwargs):
+def pure_callback(
+    callback: Callable[..., Any],
+    result_shape_dtypes: Any,
+    *args: Any,
+    sharding: Any = None,
+    vmap_method: Any = None,
+    **kwargs: Any,
+) -> Any:
     return callback(*args, **kwargs)
 
-def while_loop(cond_fun, body_fun, init_val):
+def while_loop(
+    cond_fun: Callable[[Any], Any],
+    body_fun: Callable[[Any], Any],
+    init_val: Any,
+) -> Any:
     val = init_val
     while cond_fun(val):
         val = body_fun(val)
@@ -56,7 +65,7 @@ class _Indexable(object):
     """
     __slots__ = ()
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: Any) -> Any:
         return idx
 
 index = _Indexable()
@@ -74,7 +83,7 @@ def index_mul(x: Any, idx: Any, y: Any) -> Any:
     return x
 
 class ShapeDtypeStruct:
-    def __init__(self, shape: tuple[int, ...], dtype: Any, **kwargs):
+    def __init__(self, shape: tuple[int, ...], dtype: Any, **kwargs: Any) -> None:
         self.shape = shape
         self.dtype = dtype
 

@@ -84,10 +84,10 @@ if not os.path.exists(_config_path):
 del (_floatx, _backend)
 del (os, sys, json)
 
-def default_backend():
+def default_backend() -> str:
     return _BACKEND
 
-def default_floatx():
+def default_floatx() -> str:
     return _FLOATX
 
 
@@ -96,8 +96,8 @@ def default_floatx():
 _current_backend = None
 _backend_cache = {}
 
-def set_backend(backend_name):
-    if not backend_name in _allowed_backend:
+def set_backend(backend_name: str) -> None:
+    if backend_name not in _allowed_backend:
         raise KeyError(f"Required backend {backend_name} is not supported.")
 
     with threading.RLock():
@@ -116,7 +116,7 @@ def get_backend() -> Any:
     return _current_backend
 
 @contextlib.contextmanager
-def with_backend(backend_name):
+def with_backend(backend_name: str) -> Iterator[None]:
     with threading.RLock():
         global _current_backend
         previous_backend = _current_backend
@@ -127,4 +127,3 @@ def with_backend(backend_name):
             _current_backend = previous_backend
 
 evious_backend
-

@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import partial
 import math
+from typing import TYPE_CHECKING, Any
 from pyscf.lib.numpy_helper import (
     PLAIN,
     HERMITIAN,
@@ -24,6 +27,9 @@ from pyscfad import numpy as np
 from pyscfad import ops
 from pyscfad.ops import jit, vmap
 from pyscfad import config
+
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
 
 __all__ = [
     'PLAIN',
@@ -38,7 +44,7 @@ __all__ = [
 ]
 
 @partial(jit, static_argnums=1)
-def _unpack_triu(triu, filltril=HERMITIAN):
+def _unpack_triu(triu: ArrayLike, filltril: int = HERMITIAN) -> Array:
     '''
     Unpack the upper triangular part of a matrix
     '''
@@ -61,7 +67,12 @@ def _unpack_triu(triu, filltril=HERMITIAN):
     else:
         raise KeyError
 
-def unpack_triu(triu, filltril=HERMITIAN, axis=-1, out=None):
+def unpack_triu(
+    triu: ArrayLike,
+    filltril: int = HERMITIAN,
+    axis: int = -1,
+    out: Any = None,
+) -> Array:
     if triu.ndim == 1:
         out = _unpack_triu(triu, filltril)
     elif triu.ndim == 2:
@@ -74,7 +85,7 @@ def unpack_triu(triu, filltril=HERMITIAN, axis=-1, out=None):
     return out
 
 @partial(jit, static_argnums=1)
-def _unpack_tril(tril, filltriu=HERMITIAN):
+def _unpack_tril(tril: ArrayLike, filltriu: int = HERMITIAN) -> Array:
     '''
     Unpack the lower triangular part of a matrix
     '''
@@ -97,7 +108,12 @@ def _unpack_tril(tril, filltriu=HERMITIAN):
     else:
         raise KeyError
 
-def unpack_tril(tril, filltriu=HERMITIAN, axis=-1, out=None):
+def unpack_tril(
+    tril: ArrayLike,
+    filltriu: int = HERMITIAN,
+    axis: int = -1,
+    out: Any = None,
+) -> Array:
     if config.moleintor_opt and axis == -1:
         from pyscfad.lib import _numpy_helper_opt
         return _numpy_helper_opt._unpack_tril(tril, filltriu, axis, out)
@@ -112,7 +128,7 @@ def unpack_tril(tril, filltriu=HERMITIAN, axis=-1, out=None):
         raise NotImplementedError
     return out
 
-def pack_tril(a, axis=-1, out=None):
+def pack_tril(a: ArrayLike, axis: int = -1, out: Any = None) -> Array:
     '''
     Lower triangular part of a matrix as a vector
     '''
@@ -137,7 +153,7 @@ def pack_tril(a, axis=-1, out=None):
     return tril
 
 @partial(jit, static_argnums=1)
-def hermi_triu(a, hermi=HERMITIAN):
+def hermi_triu(a: ArrayLike, hermi: int = HERMITIAN) -> Array:
     '''Batched :func:`~pyscf.lib.numpy_helper.hermi_triu`.
     '''
     assert hermi in (HERMITIAN, ANTIHERMI), f'hermi={hermi} not supported'
@@ -157,7 +173,7 @@ def hermi_triu(a, hermi=HERMITIAN):
     return out.reshape(shape)
 
 @jit
-def cartesian_prod(arrays):
+def cartesian_prod(arrays: ArrayLike) -> Array:
     '''Cartesian product of a list of 1D arrays
     '''
     grids = np.meshgrid(*arrays, indexing='ij')

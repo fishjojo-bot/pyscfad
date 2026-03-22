@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 '''Impurity MP2 solver.
 '''
 
 from functools import reduce
 import numpy
+from typing import Any
 from pyscf.lib import logger
 from pyscfad import numpy as np
 from pyscfad.ao2mo import _ao2mo
@@ -29,7 +32,7 @@ from pyscfad.lno.ccsd import (
 )
 
 class RCCSD(dfccsd.RCCSD):
-    def ao2mo(self, mo_coeff=None, fockao=None):
+    def ao2mo(self, mo_coeff: Any = None, fockao: Any = None) -> Any:
         return _make_df_eris_incore(self, mo_coeff, fockao)
 
 def _make_df_eris_incore(cc, mo_coeff=None, fockao=None):
@@ -49,8 +52,8 @@ def _make_df_eris_incore(cc, mo_coeff=None, fockao=None):
     eris.ovov = np.dot(Lov.T, Lov).reshape(nocc,nvir,nocc,nvir)
     return eris
 
-def impurity_solve(mf, mo_coeff, lo_coeff, eris=None, frozen=None,
-                   verbose_imp=0):
+def impurity_solve(mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, frozen: Any = None,
+                   verbose_imp: int = 0) -> tuple[Any]:
     log = logger.new_logger(mf)
     maskocc = mf.mo_occ > lno_base.THRESH_OCC
     nocc = numpy.count_nonzero(maskocc)
@@ -86,15 +89,15 @@ def impurity_solve(mf, mo_coeff, lo_coeff, eris=None, frozen=None,
     return (elcorr_pt2,)
 
 class LNOMP2(lno_base.LNO):
-    def __init__(self, mf, thresh=1e-4, frozen=None, **kwargs):
+    def __init__(self, mf: Any, thresh: float = 1e-4, frozen: Any = None, **kwargs: Any) -> None:
         super().__init__(mf, thresh=thresh, frozen=frozen, **kwargs)
         self.efrag_pt2 = None
 
-    def impurity_solve(self, mf, mo_coeff, lo_coeff, eris=None, frozen=None):
+    def impurity_solve(self, mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, frozen: Any = None) -> tuple[Any]:
         return impurity_solve(mf, mo_coeff, lo_coeff, eris=eris, frozen=frozen,
                               verbose_imp=self.verbose_imp)
 
-    def _post_proc(self, frag_res, frag_wghtlist):
+    def _post_proc(self, frag_res: list[Any], frag_wghtlist: Any) -> None:
         ''' Post processing results returned by `impurity_solve` collected in `frag_res`.
         '''
         efrag_pt2 = 0.0
@@ -104,5 +107,5 @@ class LNOMP2(lno_base.LNO):
         self.efrag_pt2  = efrag_pt2
 
     @property
-    def e_corr(self):
+    def e_corr(self) -> Any:
         return self.efrag_pt2

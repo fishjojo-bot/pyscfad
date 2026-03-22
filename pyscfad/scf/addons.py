@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import partial
+from typing import TYPE_CHECKING
+
 from jax import custom_jvp
 from jax.lax import while_loop
 from pyscfad import numpy as np
 from pyscfad import scipy
+
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
 
 def _fermi_entropy(mo_occ, occ_thresh=1e-10):
     occ = mo_occ / 2.0
@@ -73,7 +80,13 @@ def _smearing_optimize(f_occ, mo_es, nocc, sigma, mo_mask):
     mo_occ = f_occ(mu, mo_es, sigma, mo_mask)
     return mu, mo_occ
 
-def get_occ_smearing(mo_energy, nocc, sigma, mo_mask, method="fermi"):
+def get_occ_smearing(
+    mo_energy: ArrayLike,
+    nocc: int,
+    sigma: float,
+    mo_mask: ArrayLike,
+    method: str = "fermi",
+) -> Array:
     """Get MO occupations with smearing.
     """
     if method.lower() == "fermi":
@@ -84,7 +97,7 @@ def get_occ_smearing(mo_energy, nocc, sigma, mo_mask, method="fermi"):
     _, mo_occ = _smearing_optimize(f_occ, mo_energy, nocc, sigma, mo_mask)
     return mo_occ
 
-def canonical_orth_(S, thr=1e-7):
+def canonical_orth_(S: ArrayLike, thr: float = 1e-7) -> Array:
     """Löwdin's canonical orthogonalization.
     """
     # Ensure the basis functions are normalized (symmetry-adapted ones are not!)

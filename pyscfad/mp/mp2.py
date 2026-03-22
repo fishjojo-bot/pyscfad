@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import wraps
+from typing import TYPE_CHECKING, Any
+
 import jax
 from pyscf import __config__ as pyscf_config
 from pyscf.lib import split_reshape
@@ -24,10 +28,20 @@ from pyscfad.lib import logger
 from pyscfad import ops
 from pyscfad import ao2mo
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
 WITH_T2 = getattr(pyscf_config, 'mp_mp2_with_t2', True)
 
 @wraps(pyscf_mp2.kernel)
-def kernel(mp, mo_energy=None, mo_coeff=None, eris=None, with_t2=WITH_T2, verbose=None):
+def kernel(
+    mp: MP2,
+    mo_energy: ArrayLike | None = None,
+    mo_coeff: ArrayLike | None = None,
+    eris: _ChemistsERIs | None = None,
+    with_t2: bool = WITH_T2,
+    verbose: Any = None,
+) -> tuple[Array, ArrayLike | None]:
     if mo_energy is not None or mo_coeff is not None:
         assert (mp.frozen == 0 or mp.frozen is None)
 
@@ -101,7 +115,7 @@ def _iterative_kernel(mp, eris, verbose=None):
     return conv, emp2, t2
 
 @wraps(pyscf_mp2.energy)
-def energy(mp, t2, eris):
+def energy(mp: MP2, t2: ArrayLike, eris: _ChemistsERIs) -> Array:
     nocc, nvir = t2.shape[1:3]
     eris_ovov = np.asarray(eris.ovov).reshape(nocc,nvir,nocc,nvir)
     emp2  = np.einsum('ijab,iajb', t2, eris_ovov) * 2
@@ -109,7 +123,7 @@ def energy(mp, t2, eris):
     return emp2.real
 
 @wraps(pyscf_mp2.update_amps)
-def update_amps(mp, t2, eris):
+def update_amps(mp: MP2, t2: ArrayLike, eris: _ChemistsERIs) -> Array:
     #assert (isinstance(eris, _ChemistsERIs))
     nocc, nvir = t2.shape[1:3]
     fock = eris.fock
@@ -130,7 +144,12 @@ def update_amps(mp, t2, eris):
     t2new /= eia[:,None,:,None] + eia[None,:,None,:]
     return t2new
 
-def make_rdm1(mp, t2=None, eris=None, ao_repr=False):
+def make_rdm1(
+    mp: MP2,
+    t2: ArrayLike | None = None,
+    eris: _ChemistsERIs | None = None,
+    ao_repr: bool = False,
+) -> Array:
     from pyscfad.cc import ccsd_rdm
     doo, dvv = _gamma1_intermediates(mp, t2, eris)
     nocc = doo.shape[0]
@@ -164,7 +183,7 @@ def _gamma1_intermediates(mp, t2=None, eris=None):
 class MP2(pytree.PytreeNode, pyscf_mp2.MP2):
     _dynamic_attr = {'_scf', 'mol'}
 
-    def ao2mo(self, mo_coeff=None):
+    def ao2mo(self, mo_coeff: ArrayLike | None = None) -> _ChemistsERIs:
         eris = _ChemistsERIs()
         eris._common_init_(self, mo_coeff)
         mo_coeff = eris.mo_coeff
@@ -175,7 +194,13 @@ class MP2(pytree.PytreeNode, pyscf_mp2.MP2):
         eris.ovov = ao2mo.general(self._scf._eri, (co,cv,co,cv))
         return eris
 
-    def kernel(self, mo_energy=None, mo_coeff=None, eris=None, with_t2=WITH_T2):
+    def kernel(
+        self,
+        mo_energy: ArrayLike | None = None,
+        mo_coeff: ArrayLike | None = None,
+        eris: _ChemistsERIs | None = None,
+        with_t2: bool = WITH_T2,
+    ) -> tuple[Array, ArrayLike | None]:
         if self.verbose >= logger.WARN:
             self.check_sanity()
 
@@ -203,7 +228,13 @@ class MP2(pytree.PytreeNode, pyscf_mp2.MP2):
     update_amps = update_amps
     _iterative_kernel = _iterative_kernel
 
-    def init_amps(self, mo_energy=None, mo_coeff=None, eris=None, with_t2=WITH_T2):
+    def init_amps(
+        self,
+        mo_energy: ArrayLike | None = None,
+        mo_coeff: ArrayLike | None = None,
+        eris: _ChemistsERIs | None = None,
+        with_t2: bool = WITH_T2,
+    ) -> tuple[Array, ArrayLike | None]:
         return kernel(self, mo_energy, mo_coeff, eris, with_t2)
 
     def _finalize(self):

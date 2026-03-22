@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from functools import partial
 import numpy
@@ -37,8 +37,18 @@ def eval_gto(cell: Cell, eval_name: str, coords: ArrayLike, comp: int | None = N
     return fn(cell, eval_name, coords, comp=comp, kpts=kpts, kpt=kpt,
               shls_slice=shls_slice, non0tab=non0tab, ao_loc=ao_loc, out=out)
 
-def eval_gto_diff_full(cell: Cell, eval_name: str, coords: ArrayLike, comp: int | None = None, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
-                       shls_slice=None, non0tab=None, ao_loc=None, out=None):
+def eval_gto_diff_full(
+    cell: Cell,
+    eval_name: str,
+    coords: ArrayLike,
+    comp: int | None = None,
+    kpts: ArrayLike | None = None,
+    kpt: ArrayLike | None = None,
+    shls_slice: tuple[int, ...] | None = None,
+    non0tab: ArrayLike | None = None,
+    ao_loc: ArrayLike | None = None,
+    out: Any = None,
+) -> Array:
     from pyscfad.gto import mole
     from pyscfad.pbc.gto.cell import shift_bas_center # pylint: disable=cyclic-import
     if eval_name[:3] == 'PBC':  # PBCGTOval_xxx
@@ -90,8 +100,18 @@ def eval_gto_diff_full(cell: Cell, eval_name: str, coords: ArrayLike, comp: int 
         out = out[0]
     return out
 
-def eval_gto_diff_cell(cell: Cell, eval_name: str, coords: ArrayLike, comp: int | None = None, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
-                       shls_slice=None, non0tab=None, ao_loc=None, out=None) -> Array:
+def eval_gto_diff_cell(
+    cell: Cell,
+    eval_name: str,
+    coords: ArrayLike,
+    comp: int | None = None,
+    kpts: ArrayLike | None = None,
+    kpt: ArrayLike | None = None,
+    shls_slice: tuple[int, ...] | None = None,
+    non0tab: ArrayLike | None = None,
+    ao_loc: ArrayLike | None = None,
+    out: Any = None,
+) -> Array:
     if 'ip' in eval_name:
         return pyscf_eval_gto(cell, eval_name, coords, comp, kpts, kpt,
                               shls_slice, non0tab, ao_loc, out)
@@ -99,8 +119,18 @@ def eval_gto_diff_cell(cell: Cell, eval_name: str, coords: ArrayLike, comp: int 
                      shls_slice, non0tab, ao_loc, out)
 
 @partial(custom_jvp, nondiff_argnums=tuple(range(1,10)))
-def _eval_gto(cell: Cell, eval_name: str, coords: ArrayLike, comp, kpts, kpt,
-              shls_slice, non0tab, ao_loc, out):
+def _eval_gto(
+    cell: Cell,
+    eval_name: str,
+    coords: ArrayLike,
+    comp: int | None,
+    kpts: ArrayLike | None,
+    kpt: ArrayLike | None,
+    shls_slice: tuple[int, ...] | None,
+    non0tab: ArrayLike | None,
+    ao_loc: ArrayLike | None,
+    out: Any,
+) -> Array:
     return pyscf_eval_gto(cell.view(Cell), eval_name, coords, comp=comp, kpts=kpts, kpt=kpt,
                           shls_slice=shls_slice, non0tab=non0tab, ao_loc=ao_loc, out=out)
 

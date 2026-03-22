@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 import numpy
 from pyscf.fci import cistring
 from pyscfad import numpy as np
@@ -21,7 +25,10 @@ from pyscfad.lib.linalg_helper import davidson
 from pyscfad.gto import mole
 from pyscfad import ao2mo
 
-def get_occ_loc(strs, norb):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
+def get_occ_loc(strs: ArrayLike, norb: int) -> Array:
     locs = []
     for x in strs:
         loc = []
@@ -31,7 +38,18 @@ def get_occ_loc(strs, norb):
         locs.append(loc)
     return np.asarray(locs)
 
-def fci_ovlp(mol1, mol2, fcivec1, fcivec2, norb1, norb2, nelec1, nelec2, mo1, mo2):
+def fci_ovlp(
+    mol1: Any,
+    mol2: Any,
+    fcivec1: ArrayLike,
+    fcivec2: ArrayLike,
+    norb1: int,
+    norb2: int,
+    nelec1: int | tuple[int, int],
+    nelec2: int | tuple[int, int],
+    mo1: ArrayLike,
+    mo2: ArrayLike,
+) -> Array:
     mo1 = np.asarray(mo1)
     mo2 = np.asarray(mo2)
     fcivec1 = np.asarray(fcivec1)
@@ -105,7 +123,13 @@ def fci_ovlp(mol1, mol2, fcivec1, fcivec2, norb1, norb2, nelec1, nelec2, mo1, mo
             res += ci1[ia,ib] * (val * ci2.ravel()).sum()
     return res
 
-def contract_2e(eri, fcivec, norb, nelec, opt=None):
+def contract_2e(
+    eri: ArrayLike,
+    fcivec: ArrayLike,
+    norb: int,
+    nelec: int | tuple[int, int],
+    opt: Any = None,
+) -> Array:
     '''Compute E_{pq}E_{rs}|CI>'''
     if isinstance(nelec, (int, np.integer)):
         nelecb = nelec//2
@@ -136,7 +160,13 @@ def contract_2e(eri, fcivec, norb, nelec, opt=None):
             fcinew = ops.index_add(fcinew, ops.index[:,str1], sign * t1[a,i,:,str0])
     return fcinew.reshape(fcivec.shape)
 
-def absorb_h1e(h1e, eri, norb, nelec, fac=1):
+def absorb_h1e(
+    h1e: ArrayLike,
+    eri: ArrayLike,
+    norb: int,
+    nelec: int | tuple[int, int],
+    fac: float = 1,
+) -> Array:
     if not isinstance(nelec, (int, np.integer)):
         nelec = np.sum(nelec)
     assert nelec > 0
@@ -154,7 +184,13 @@ def absorb_h1e(h1e, eri, norb, nelec, fac=1):
         h2e = ops.index_add(h2e, ops.index[:,:,k,k], f1e)
     return h2e * fac
 
-def make_hdiag(h1e, eri, norb, nelec, opt=None):
+def make_hdiag(
+    h1e: ArrayLike,
+    eri: ArrayLike,
+    norb: int,
+    nelec: int | tuple[int, int],
+    opt: Any = None,
+) -> Array:
     if isinstance(nelec, (int, np.integer)):
         nelecb = nelec//2
         neleca = nelec - nelecb
@@ -179,7 +215,14 @@ def make_hdiag(h1e, eri, norb, nelec, opt=None):
             hdiag.append(e1 + e2*.5)
     return np.array(hdiag)
 
-def kernel(h1e, eri, norb, nelec, ecore=0, nroots=1):
+def kernel(
+    h1e: ArrayLike,
+    eri: ArrayLike,
+    norb: int,
+    nelec: int | tuple[int, int],
+    ecore: float = 0,
+    nroots: int = 1,
+) -> tuple[ArrayLike, Any]:
     h2e = absorb_h1e(h1e, eri, norb, nelec, .5)
     na = cistring.num_strings(norb, nelec//2)
 
@@ -205,4 +248,3 @@ def kernel(h1e, eri, norb, nelec, ecore=0, nroots=1):
 
     e, c = davidson(hop, ci0, precond, nroots=nroots)
     return e+ecore, c
-

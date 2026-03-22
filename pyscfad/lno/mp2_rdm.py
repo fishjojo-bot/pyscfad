@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import partial
+from typing import Any
+
 import jax
 import numpy
 from jax import numpy as np
@@ -24,7 +28,7 @@ from pyscfad.implicit_diff import make_implicit_diff
 from pyscfad.scipy.sparse.linalg import gmres
 from pyscfad.tools.linear_solver import GMRESDisp
 
-def fock_response_rhf(mf, dm, mo_coeff=None, mo_occ=None, full=True, einsum=np.einsum):
+def fock_response_rhf(mf: Any, dm: Any, mo_coeff: Any = None, mo_occ: Any = None, full: bool = True, einsum: Any = np.einsum) -> Any:
     if mo_coeff is None:
         mo_coeff = mf.mo_coeff
     if mo_occ is None:
@@ -39,7 +43,7 @@ def fock_response_rhf(mf, dm, mo_coeff=None, mo_occ=None, full=True, einsum=np.e
     rvo = einsum('xa,xy,yi->ai', Ca, rao, Ci)
     return rvo
 
-def make_rdm1_vo_frag(mp, dm1_oo, dm1_vv, Lia, Ljb, eia, ejb, eris=None, ao_repr=False):
+def make_rdm1_vo_frag(mp: Any, dm1_oo: Any, dm1_vv: Any, Lia: Any, Ljb: Any, eia: Any, ejb: Any, eris: Any = None, ao_repr: bool = False) -> Any:
     mf = mp._scf
     mo_occ = mf.mo_occ
     orbo, orbv = mp.split_mo()[1:3]
@@ -107,7 +111,7 @@ def make_rdm1_vo_frag(mp, dm1_oo, dm1_vv, Lia, Ljb, eia, ejb, eris=None, ao_repr
         out = zvo
     return out
 
-def cphf_optcond(z, mf, h1, mo_energy, mo_coeff):
+def cphf_optcond(z: Any, mf: Any, h1: Any, mo_energy: Any, mo_coeff: Any) -> Any:
     mo_occ = mf.mo_occ
     e_a = mo_energy[mo_occ==0]
     e_i = mo_energy[mo_occ>0]
@@ -126,8 +130,8 @@ def cphf_optcond(z, mf, h1, mo_energy, mo_coeff):
     zero = z.reshape(h1.shape) + vind_vo(z) - mo1base
     return zero
 
-def solve_cphf(z, mf, h1, mo_energy, mo_coeff, *,
-               tol=1e-9, max_cycle=50):
+def solve_cphf(z: Any, mf: Any, h1: Any, mo_energy: Any, mo_coeff: Any, *,
+               tol: float = 1e-9, max_cycle: int = 50) -> Any:
     from pyscf.scf import cphf as pyscf_cphf
     mo_occ = mf.mo_occ
     e_a = mo_energy[mo_occ==0]

@@ -94,8 +94,17 @@ def nr_rks(ni: Any, cell: Cell, grids: Any, xc_code: str, dms: ArrayLike, spin: 
         vmat = vmat[0]
     return nelec, excsum, vmat
 
-def eval_ao(cell, coords, kpt=numpy.zeros(3), deriv=0, relativity=0, shls_slice=None,
-            non0tab=None, out=None, verbose=None):
+def eval_ao(
+    cell: Cell,
+    coords: ArrayLike,
+    kpt: ArrayLike = numpy.zeros(3),
+    deriv: int = 0,
+    relativity: int = 0,
+    shls_slice=None,
+    non0tab=None,
+    out=None,
+    verbose: Any = None,
+) -> Array:
     ao_kpts = eval_ao_kpts(cell, coords, numpy.reshape(kpt, (-1,3)), deriv,
                            relativity, shls_slice, non0tab, out, verbose)
     return ao_kpts[0]
@@ -119,7 +128,15 @@ def eval_ao_kpts(cell: Cell, coords: ArrayLike, kpts: ArrayLike | None = None, d
     return cell.pbc_eval_gto(feval, coords, comp, kpts,
                              shls_slice=shls_slice, non0tab=non0tab, out=out)
 
-def eval_rho(cell, ao, dm, non0tab=None, xctype='LDA', hermi=0, verbose=None):
+def eval_rho(
+    cell: Cell,
+    ao: ArrayLike,
+    dm: ArrayLike,
+    non0tab: ArrayLike | None = None,
+    xctype: str = 'LDA',
+    hermi: int = 0,
+    verbose: Any = None,
+) -> Array:
     if xctype in ['LDA', 'HF']:
         ngrids, nao = ao.shape
     else:
@@ -194,8 +211,18 @@ def eval_rho(cell, ao, dm, non0tab=None, xctype='LDA', hermi=0, verbose=None):
     return rho
 
 class NumInt(numint.NumInt):
-    def nr_rks(self, cell, grids, xc_code, dms, hermi=0,
-               kpt=numpy.zeros(3), kpts_band=None, max_memory=2000, verbose=None):
+    def nr_rks(
+        self,
+        cell: Cell,
+        grids: Any,
+        xc_code: str,
+        dms: ArrayLike,
+        hermi: int = 0,
+        kpt: ArrayLike = numpy.zeros(3),
+        kpts_band: ArrayLike | None = None,
+        max_memory: int = 2000,
+        verbose: Any = None,
+    ) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
         if kpts_band is not None:
             # To compute Vxc on kpts_band, convert the NumInt object to KNumInt object.
             ni = KNumInt()
@@ -212,8 +239,18 @@ class NumInt(numint.NumInt):
         return eval_ao(cell, coords, kpt, deriv, relativity, shls_slice,
                        non0tab, out, verbose)
 
-    def eval_mat(self, cell, ao, weight, rho, vxc,
-                 non0tab=None, xctype='LDA', spin=0, verbose=None):
+    def eval_mat(
+        self,
+        cell: Cell,
+        ao: ArrayLike,
+        weight: ArrayLike,
+        rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+        vxc: Any,
+        non0tab: ArrayLike | None = None,
+        xctype: str = 'LDA',
+        spin: int = 0,
+        verbose: Any = None,
+    ) -> Array:
         # Guess whether ao is evaluated for kpts_band.  When xctype is LDA, ao on grids
         # should be a 2D array.  For other xc functional, ao should be a 3D array.
         if ao.ndim == 2 or (xctype != 'LDA' and ao.ndim == 3):
@@ -271,12 +308,23 @@ class NumInt(numint.NumInt):
             ao_k1 = ao_k2 = None
 
 class KNumInt(numint.NumInt):
-    def __init__(self, kpts=numpy.zeros((1,3))):
+    def __init__(self, kpts: ArrayLike = numpy.zeros((1,3))) -> None:
         numint.NumInt.__init__(self)
         self.kpts = kpts #numpy.reshape(kpts, (-1,3))
 
-    def nr_rks(self, cell, grids, xc_code, dms, hermi=0, kpts=None, kpts_band=None,
-               max_memory=2000, verbose=None, **kwargs):
+    def nr_rks(
+        self,
+        cell: Cell,
+        grids: Any,
+        xc_code: str,
+        dms: ArrayLike,
+        hermi: int = 0,
+        kpts: ArrayLike | None = None,
+        kpts_band: ArrayLike | None = None,
+        max_memory: int = 2000,
+        verbose: Any = None,
+        **kwargs: Any,
+    ) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
         if kpts is None:
             if 'kpt' in kwargs:
                 sys.stderr.write('WARN: KNumInt.nr_rks function finds keyword '
@@ -289,8 +337,18 @@ class KNumInt(numint.NumInt):
         return nr_rks(self, cell, grids, xc_code, dms, 0, 0,
                       hermi, kpts, kpts_band, max_memory, verbose)
 
-    def eval_mat(self, cell, ao_kpts, weight, rho, vxc,
-                 non0tab=None, xctype='LDA', spin=0, verbose=None):
+    def eval_mat(
+        self,
+        cell: Cell,
+        ao_kpts: ArrayLike,
+        weight: ArrayLike,
+        rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+        vxc: Any,
+        non0tab: ArrayLike | None = None,
+        xctype: str = 'LDA',
+        spin: int = 0,
+        verbose: Any = None,
+    ) -> Array:
         nkpts = len(ao_kpts)
         nao = ao_kpts[0].shape[-1]
         #dtype = np.result_type(*ao_kpts)
@@ -301,13 +359,32 @@ class KNumInt(numint.NumInt):
                               non0tab, xctype, spin, verbose)
         return np.asarray(mat)
 
-    def eval_ao(self, cell, coords, kpts=numpy.zeros((1,3)), deriv=0, relativity=0,
-                shls_slice=None, non0tab=None, out=None, verbose=None, **kwargs):
+    def eval_ao(
+        self,
+        cell: Cell,
+        coords: ArrayLike,
+        kpts: ArrayLike = numpy.zeros((1,3)),
+        deriv: int = 0,
+        relativity: int = 0,
+        shls_slice=None,
+        non0tab=None,
+        out=None,
+        verbose: Any = None,
+        **kwargs: Any,
+    ) -> Array:
         return eval_ao_kpts(cell, coords, kpts, deriv,
                             relativity, shls_slice, non0tab, out, verbose)
 
-    def eval_rho(self, cell, ao_kpts, dm_kpts, non0tab=None, xctype='LDA',
-                 hermi=0, verbose=None):
+    def eval_rho(
+        self,
+        cell: Cell,
+        ao_kpts: ArrayLike,
+        dm_kpts: ArrayLike,
+        non0tab: ArrayLike | None = None,
+        xctype: str = 'LDA',
+        hermi: int = 0,
+        verbose: Any = None,
+    ) -> Array:
         nkpts = len(ao_kpts)
         rhoR = 0
         for k in range(nkpts):

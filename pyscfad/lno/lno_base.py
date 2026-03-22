@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import warnings
 from functools import reduce
 import numpy
+from typing import Any
 from pyscf.mp.mp2 import get_frozen_mask, get_nmo, get_nocc
 
 from pyscfad import numpy as np
@@ -37,8 +40,8 @@ SEMICANONICAL_DEG_THRESH = 1e-8
 # Anything not bigger than the NO occupation number gap should work
 COMPRESS_DEG_THRESH = 1e-12
 
-def kernel(mfcc, orbloc, frag_lolist,
-           no_type='ie', eris=None, frag_nonvlist=None):
+def kernel(mfcc: Any, orbloc: Any, frag_lolist: Any,
+           no_type: str = 'ie', eris: Any = None, frag_nonvlist: Any = None) -> list[Any]:
     if eris is None:
         eris = mfcc.ao2mo()
 
@@ -62,8 +65,8 @@ def kernel(mfcc, orbloc, frag_lolist,
     return frag_res
 
 
-def kernel_1frag(mfcc, eris, orbfragloc, no_type,
-                 frag_target_nocc=None, frag_target_nvir=None):
+def kernel_1frag(mfcc: Any, eris: Any, orbfragloc: Any, no_type: str,
+                 frag_target_nocc: Any = None, frag_target_nvir: Any = None) -> tuple[Any, ...]:
     mf = mfcc._scf
     frozen_mask = mfcc.get_frozen_mask()
     thresh_pno = (mfcc.thresh_occ, mfcc.thresh_vir)
@@ -78,8 +81,8 @@ def kernel_1frag(mfcc, eris, orbfragloc, no_type,
                                    frozen=frzfrag, eris=eris)
     return frag_res
 
-def make_fpno1(mfcc, eris, orbfragloc, no_type, thresh_internal, thresh_external,
-               frozen_mask=None, frag_target_nocc=None, frag_target_nvir=None):
+def make_fpno1(mfcc: Any, eris: Any, orbfragloc: Any, no_type: str, thresh_internal: float, thresh_external: Any,
+               frozen_mask: Any = None, frag_target_nocc: Any = None, frag_target_nvir: Any = None) -> tuple[Any, Any]:
     mytimer = timer.Timer()
 
     mf = mfcc._scf
@@ -295,7 +298,7 @@ def make_fpno1(mfcc, eris, orbfragloc, no_type, thresh_internal, thresh_external
     mytimer.timer('make_fpno1:')
     return frzfrag, orbfrag
 
-def make_rdm1_mp2(t2, kind, e1_or_e2, swapidx):
+def make_rdm1_mp2(t2: Any, kind: str, e1_or_e2: str, swapidx: str) -> Any:
     r''' Calculate MP2 rdm1 from T2.
 
     Args:
@@ -351,7 +354,7 @@ def make_rdm1_mp2(t2, kind, e1_or_e2, swapidx):
     return dm
 
 
-def augment_ov(dmov, thresh, prj_occ=None, prj_vir=None):
+def augment_ov(dmov: Any, thresh: float, prj_occ: Any = None, prj_vir: Any = None) -> tuple[Any, Any]:
     if prj_occ is not None:
         dmov = np.dot(prj_occ.T, dmov)
     if prj_vir is not None:
@@ -361,7 +364,7 @@ def augment_ov(dmov, thresh, prj_occ=None, prj_vir=None):
     v = vt.conj().T
     return u[:,idx], v[:,idx]
 
-def augment_virt(dm_corr, orbo, orbv, thresh, s1e=None, prj=None):
+def augment_virt(dm_corr: Any, orbo: Any, orbv: Any, thresh: float, s1e: Any = None, prj: Any = None) -> Any:
     nocc = orbo.shape[-1]
     dm_corr_ov = transform_rdm1(dm_corr, orbo, orbv, s1e)
     if prj is not None:
@@ -371,14 +374,14 @@ def augment_virt(dm_corr, orbo, orbv, thresh, s1e=None, prj=None):
     v = vt.conj().T
     return v[:,idx]
 
-def transform_rdm1(dm0, orb1, orb2, s1e=None):
+def transform_rdm1(dm0: Any, orb1: Any, orb2: Any, s1e: Any = None) -> Any:
     if s1e is None:
         dm1 = reduce(np.dot, (orb1.conj().T, dm0, orb2))
     else:
         dm1 = reduce(np.dot, (orb1.conj().T, s1e, dm0, s1e, orb2))
     return dm1
 
-def projection_construction(M, thresh):
+def projection_construction(M: Any, thresh: float) -> tuple[Any, Any]:
     r''' Given M_{mu,i} = <mu | i> the ovlp between two orthonormal basis, find
     the unitary rotation |j'> = u_ij |i> so that {|j'>} significantly ovlp with
     {|mu>}.
@@ -394,7 +397,7 @@ def projection_construction(M, thresh):
     norb = np.count_nonzero(e > thresh)
     return v[:,:norb], v[:,norb:]
 
-def semicanonicalize(fock, orb):
+def semicanonicalize(fock: Any, orb: Any) -> tuple[Any, Any]:
     f = reduce(np.dot, (orb.T, fock, orb))
     if orb.shape[1] == 1:
         moe = f.ravel()
@@ -403,7 +406,7 @@ def semicanonicalize(fock, orb):
         orb = np.dot(orb, u)
     return moe, orb
 
-def canonical_orth_(S, thr=1e-8):
+def canonical_orth_(S: Any, thr: float = 1e-8) -> Any:
     '''Löwdin's canonical orthogonalization'''
     # Ensure the basis functions are normalized (symmetry-adapted ones are not!)
     normlz = np.power(np.diag(S), -0.5)
@@ -415,7 +418,7 @@ def canonical_orth_(S, thr=1e-8):
     X = np.dot(np.diag(normlz), X)
     return X
 
-def collocate_unitary(us):
+def collocate_unitary(us: Any) -> tuple[Any, Any]:
     '''Collocate a few unitary matrices
 
     Args:
@@ -439,7 +442,7 @@ def collocate_unitary(us):
     assert us0.shape[-1] + x1.shape[-1] == us0.shape[0]
     return us0, x1
 
-def osv_compression(dms, orb, thresh, prj=None, norb_target=None):
+def osv_compression(dms: Any, orb: Any, thresh: float, prj: Any = None, norb_target: Any = None) -> tuple[Any, Any]:
     us = []
     for dm in dms:
         e, u = scipy.linalg.eigh(dm, deg_thresh=COMPRESS_DEG_THRESH)
@@ -452,8 +455,8 @@ def osv_compression(dms, orb, thresh, prj=None, norb_target=None):
     orb0x = np.dot(orb, x1)
     return orb1x, orb0x
 
-def natorb_compression(dm, orb, thresh, prj=None, norb_target=None,
-                       uuvir2_corr=None, natorb_occdeg_thresh=0):
+def natorb_compression(dm: Any, orb: Any, thresh: float, prj: Any = None, norb_target: Any = None,
+                       uuvir2_corr: Any = None, natorb_occdeg_thresh: float = 0) -> tuple[Any, Any]:
     e, u = scipy.linalg.eigh(dm, deg_thresh=COMPRESS_DEG_THRESH)
     if norb_target is None:
         idx = numpy.where(abs(e) > thresh)[0]
@@ -486,17 +489,17 @@ def natorb_compression(dm, orb, thresh, prj=None, norb_target=None,
         orb0x = sub_colspace(orbx, idxc)
     return orb1x, orb0x
 
-def sub_colspace(A, idx):
+def sub_colspace(A: Any, idx: Any) -> Any:
     if idx.size == 0:
         return np.zeros([A.shape[0],0])
     else:
         return A[:,idx]
 
-def get_cholesky_mos(mo_coeff):
+def get_cholesky_mos(mo_coeff: Any) -> Any:
     from pyscfad.lo.cholesky import cholesky_mos
     return cholesky_mos(mo_coeff)
 
-def get_iao(mol, mo_coeff, minao='minao', orth=True):
+def get_iao(mol: Any, mo_coeff: Any, minao: str = 'minao', orth: bool = True) -> Any:
     from pyscfad.lo.orth import vec_lowdin
     from pyscfad.lo.iao import iao as iao_kernel
     c = iao_kernel(mol, mo_coeff, minao=minao)
@@ -506,28 +509,28 @@ def get_iao(mol, mo_coeff, minao='minao', orth=True):
         c = vec_lowdin(c, s)
     return c
 
-def get_ibo(mol, mo_coeff, init_guess=None,
-            conv_tol=1e-10, symmetry=False, options=None):
+def get_ibo(mol: Any, mo_coeff: Any, init_guess: Any = None,
+            conv_tol: float = 1e-10, symmetry: bool = False, options: Any = None) -> Any:
     return get_pm(mol, mo_coeff, pop_method='ibo',
                   init_guess=init_guess, conv_tol=conv_tol,
                   symmetry=symmetry, options=options)
 
-def get_boys(mol, mo_coeff, init_guess=None,
-             conv_tol=1e-10, symmetry=False, options=None):
+def get_boys(mol: Any, mo_coeff: Any, init_guess: Any = None,
+             conv_tol: float = 1e-10, symmetry: bool = False, options: Any = None) -> Any:
     from pyscfad.lo.boys import boys
     return boys(mol, mo_coeff, init_guess=init_guess,
                 conv_tol=conv_tol, symmetry=symmetry,
                 gmres_options=options)
 
-def get_pm(mol, mo_coeff, pop_method='mulliken',
-           init_guess=None, conv_tol=1e-10,
-           symmetry=False, options=None):
+def get_pm(mol: Any, mo_coeff: Any, pop_method: str = 'mulliken',
+           init_guess: Any = None, conv_tol: float = 1e-10,
+           symmetry: bool = False, options: Any = None) -> Any:
     from pyscfad.lo.pipek import pm
     return pm(mol, mo_coeff, pop_method=pop_method,
               init_guess=init_guess, conv_tol=conv_tol,
               symmetry=symmetry, gmres_options=options)
 
-def mo_splitter(maskact, maskocc, kind='mask'):
+def mo_splitter(maskact: Any, maskocc: Any, kind: str = 'mask') -> Any:
     ''' Split MO indices into
         - frozen occupieds
         - active occupieds
@@ -564,7 +567,7 @@ def mo_splitter(maskact, maskocc, kind='mask'):
 class LNO(pytree.PytreeNode):
     _dynamic_attr = {'_scf', 'mol', 'with_df'}
 
-    def __init__(self, mf, thresh=1e-4, frozen=None, fock=None, s1e=None, **kwargs):
+    def __init__(self, mf: Any, thresh: float = 1e-4, frozen: Any = None, fock: Any = None, s1e: Any = None, **kwargs: Any) -> None:
         self._scf = mf
         self.mol = mf.mol
         if getattr(mf, 'with_df', None):
@@ -599,14 +602,14 @@ class LNO(pytree.PytreeNode):
     get_nmo = get_nmo
 
     @property
-    def nocc(self):
+    def nocc(self) -> Any:
         return self.get_nocc()
 
     @property
-    def nmo(self):
+    def nmo(self) -> Any:
         return self.get_nmo()
 
-    def mo_splitter(self, mo_occ, kind='mask'):
+    def mo_splitter(self, mo_occ: Any, kind: str = 'mask') -> Any:
         r''' Return index arrays that split MOs into
             - frozen occupieds
             - active occupieds
@@ -623,7 +626,7 @@ class LNO(pytree.PytreeNode):
         maskocc = mo_occ > THRESH_OCC
         return mo_splitter(maskact, maskocc, kind=kind)
 
-    def split_mo(self, mo_coeff=None, mo_occ=None):
+    def split_mo(self, mo_coeff: Any = None, mo_occ: Any = None) -> list[Any]:
         if mo_coeff is None:
             mo_coeff = self._scf.mo_coeff
         if mo_occ is None:
@@ -631,7 +634,7 @@ class LNO(pytree.PytreeNode):
         masks = self.mo_splitter(mo_occ)
         return [mo_coeff[:,m] for m in masks]
 
-    def split_moe(self, mo_energy=None, mo_occ=None):
+    def split_moe(self, mo_energy: Any = None, mo_occ: Any = None) -> list[Any]:
         if mo_energy is None:
             mo_energy = self._scf.mo_energy
         if mo_occ is None:
@@ -639,9 +642,9 @@ class LNO(pytree.PytreeNode):
         masks = self.mo_splitter(mo_occ)
         return [mo_energy[m] for m in masks]
 
-    def get_lo(self, mol=None, mo_coeff=None, mo_occ=None,
-               lo_type='iao', init_guess=None, symmetry=False,
-               options=None):
+    def get_lo(self, mol: Any = None, mo_coeff: Any = None, mo_occ: Any = None,
+               lo_type: str = 'iao', init_guess: Any = None, symmetry: bool = False,
+               options: Any = None) -> Any:
         if mol is None:
             mol = self._scf.mol
         if mo_coeff is None:
@@ -668,7 +671,7 @@ class LNO(pytree.PytreeNode):
             raise KeyError(f'Unrecognized orbital localization method: {lo_type}.')
         return orbloc
 
-    def ao2mo(self, fock=None, s1e=None):
+    def ao2mo(self, fock: Any = None, s1e: Any = None) -> Any:
         if fock is None:
             fock = self.fock
         if s1e is None:
@@ -681,16 +684,16 @@ class LNO(pytree.PytreeNode):
         return eris
 
     def kernel(self,
-               frag_lolist=None,
-               frag_wghtlist=None,
-               frag_atmlist=None,
-               lo_type=None,
-               no_type=None,
-               frag_nonvlist=None,
-               orbloc=None,
-               lo_init_guess=None,
-               lo_symmetry=False,
-               lo_options=None):
+               frag_lolist: Any = None,
+               frag_wghtlist: Any = None,
+               frag_atmlist: Any = None,
+               lo_type: str | None = None,
+               no_type: str | None = None,
+               frag_nonvlist: Any = None,
+               orbloc: Any = None,
+               lo_init_guess: Any = None,
+               lo_symmetry: bool = False,
+               lo_options: Any = None) -> None:
         if lo_type is None:
             lo_type = self.lo_type
         if no_type is None:
@@ -724,7 +727,7 @@ class LNO(pytree.PytreeNode):
                           frag_nonvlist=frag_nonvlist)
         self._post_proc(frag_res, frag_wghtlist)
 
-    def _post_proc(self, frag_res, frag_wghtlist):
+    def _post_proc(self, frag_res: Any, frag_wghtlist: Any) -> None:
         raise NotImplementedError
 
     get_frozen_mask = get_frozen_mask
@@ -793,7 +796,7 @@ class _LNODFINCOREERIS(_LNOERIS):
         return self._get_eris(LoV, LoV)
 
 
-def get_Lov(mf, mo_coeff, nocc):
+def get_Lov(mf: Any, mo_coeff: Any, nocc: int) -> Any:
     assert hasattr(mf, 'with_df')
     cderi = mf.with_df._cderi
     naux = cderi.shape[0]

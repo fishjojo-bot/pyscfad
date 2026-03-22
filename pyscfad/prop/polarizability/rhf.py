@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import reduce
 import numpy
+from typing import TYPE_CHECKING, Any
+
 from pyscf.prop.polarizability.rhf import Polarizability as pyscf_Polarizability
 from pyscfad import numpy as np
 from pyscfad import ops
@@ -21,8 +25,20 @@ from pyscfad.lib import logger
 # TODO scipy backend
 from jax.scipy.sparse.linalg import gmres
 
-def cphf_with_freq(mf, mo_energy, mo_occ, h1, freq=0,
-                   max_cycle=20, tol=1e-9, hermi=False, verbose=logger.WARN):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
+def cphf_with_freq(
+    mf: Any,
+    mo_energy: ArrayLike,
+    mo_occ: ArrayLike,
+    h1: ArrayLike,
+    freq: float = 0,
+    max_cycle: int = 20,
+    tol: float = 1e-9,
+    hermi: bool = False,
+    verbose: Any = logger.WARN,
+) -> tuple[tuple[ArrayLike, ArrayLike], Array]:
     log = logger.new_logger(verbose=verbose)
     t0 = (logger.process_clock(), logger.perf_counter())
 
@@ -90,7 +106,7 @@ def cphf_with_freq(mf, mo_energy, mo_occ, h1, freq=0,
     mo1 = (mo1[:,0], mo1[:,1])
     return mo1, mo_e1
 
-def polarizability_with_freq(polobj, freq=None):
+def polarizability_with_freq(polobj: Polarizability, freq: float | None = None) -> Array:
     log = logger.new_logger(polobj)
     mf = polobj._scf
     mol = mf.mol
@@ -122,7 +138,7 @@ def polarizability_with_freq(polobj, freq=None):
 
 
 class Polarizability(pyscf_Polarizability):
-    def gen_vind(self, mf, mo_coeff, mo_occ):
+    def gen_vind(self, mf: Any, mo_coeff: ArrayLike, mo_occ: ArrayLike) -> Any:
         vresp = mf.gen_response(hermi=1)
         occidx = mo_occ > 0
         orbo = mo_coeff[:, occidx]

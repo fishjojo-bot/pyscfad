@@ -62,7 +62,15 @@ def eval_xc(
     return exc, vxc, None, None # pylint: disable=used-before-assignment
 
 @partial(custom_jvp, nondiff_argnums=tuple(range(1,7)))
-def _eval_xc_comp(rho, xc_code, spin=0, relativity=0, deriv=1, omega=None, verbose=None):
+def _eval_xc_comp(
+    rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+    xc_code: str,
+    spin: int = 0,
+    relativity: int = 0,
+    deriv: int = 1,
+    omega: float | None = None,
+    verbose: Any = None,
+) -> Any:
     out = libxc.eval_xc(xc_code, rho, spin, relativity, deriv, omega, verbose)[deriv]
     if deriv == 1:
         out = tuple(out)

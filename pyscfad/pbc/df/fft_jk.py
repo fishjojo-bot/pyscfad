@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy
 from pyscf import lib as pyscf_lib
 from pyscf.pbc.df.df_jk import _format_dms, _format_kpts_band, _format_jks
@@ -23,7 +27,16 @@ from pyscfad.pbc.df.df_jk import _ewald_exxdiv_for_G0
 from pyscfad.pbc.lib.kpts_helper import is_zero, gamma_point
 from pyscfad.pbc.tools import get_coulG
 
-def get_j_kpts(mydf, dm_kpts, hermi=1, kpts=numpy.zeros((1,3)), kpts_band=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
+def get_j_kpts(
+    mydf,
+    dm_kpts: ArrayLike,
+    hermi: int = 1,
+    kpts: ArrayLike = numpy.zeros((1,3)),
+    kpts_band: ArrayLike | None = None,
+) -> Array:
     cell = mydf.cell
     mesh = mydf.mesh
 
@@ -87,8 +100,14 @@ def get_j_kpts(mydf, dm_kpts, hermi=1, kpts=numpy.zeros((1,3)), kpts_band=None):
 
     return _format_jks(vj_kpts, dm_kpts, input_band, kpts)
 
-def get_k_kpts(mydf, dm_kpts, hermi=1, kpts=numpy.zeros((1,3)), kpts_band=None,
-               exxdiv=None):
+def get_k_kpts(
+    mydf,
+    dm_kpts: ArrayLike,
+    hermi: int = 1,
+    kpts: ArrayLike = numpy.zeros((1,3)),
+    kpts_band: ArrayLike | None = None,
+    exxdiv=None,
+) -> Array:
     cell = mydf.cell
     mesh = mydf.mesh
     coords = cell.gen_uniform_grids(mesh)
@@ -182,8 +201,16 @@ def get_k_kpts(mydf, dm_kpts, hermi=1, kpts=numpy.zeros((1,3)), kpts_band=None,
 
     return _format_jks(vk_kpts, dm_kpts, input_band, kpts)
 
-def get_jk(mydf, dm, hermi=1, kpt=numpy.zeros(3), kpts_band=None,
-           with_j=True, with_k=True, exxdiv=None):
+def get_jk(
+    mydf,
+    dm: ArrayLike,
+    hermi: int = 1,
+    kpt: ArrayLike = numpy.zeros(3),
+    kpts_band: ArrayLike | None = None,
+    with_j: bool = True,
+    with_k: bool = True,
+    exxdiv=None,
+) -> tuple[ArrayLike | None, ArrayLike | None]:
     dm = np.asarray(dm)
     vj = vk = None
     if with_j:
@@ -192,7 +219,13 @@ def get_jk(mydf, dm, hermi=1, kpt=numpy.zeros(3), kpts_band=None,
         vk = get_k(mydf, dm, hermi, kpt, kpts_band, exxdiv)
     return vj, vk
 
-def get_j(mydf, dm, hermi=1, kpt=numpy.zeros(3), kpts_band=None):
+def get_j(
+    mydf,
+    dm: ArrayLike,
+    hermi: int = 1,
+    kpt: ArrayLike = numpy.zeros(3),
+    kpts_band: ArrayLike | None = None,
+) -> Array:
     dm = np.asarray(dm)
     nao = dm.shape[-1]
     dm_kpts = dm.reshape(-1,1,nao,nao)
@@ -203,7 +236,14 @@ def get_j(mydf, dm, hermi=1, kpt=numpy.zeros(3), kpts_band=None):
         vj = vj[0]
     return vj
 
-def get_k(mydf, dm, hermi=1, kpt=numpy.zeros(3), kpts_band=None, exxdiv=None):
+def get_k(
+    mydf,
+    dm: ArrayLike,
+    hermi: int = 1,
+    kpt: ArrayLike = numpy.zeros(3),
+    kpts_band: ArrayLike | None = None,
+    exxdiv=None,
+) -> Array:
     dm = np.asarray(dm)
     nao = dm.shape[-1]
     dm_kpts = dm.reshape(-1,1,nao,nao)

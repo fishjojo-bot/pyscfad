@@ -12,21 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import inspect
 import ast
+from typing import Any
 
 class RewriteName(ast.NodeTransformer):
-    def __init__(self, orig, repl):
+    def __init__(self, orig: str, repl: str) -> None:
         self.orig = orig
         self.repl = repl
 
-    def visit_Name(self, node):
+    def visit_Name(self, node: ast.Name) -> ast.AST:
         if node.id == self.orig:
             result = ast.Name(id=self.repl, ctx=ast.Load())
             return ast.copy_location(result, node)
         return node
 
-def replace_source_code(fn, namespace, orig, repl):
+def replace_source_code(fn: Any, namespace: dict[str, Any], orig: str, repl: str) -> Any:
     # FIXME the returned function when being inspected gives wrong result
     source = inspect.getsource(fn)
     tree = ast.parse(source)
@@ -36,7 +39,7 @@ def replace_source_code(fn, namespace, orig, repl):
     exec(code, namespace)
     return namespace[fn.__name__]
 
-def numpy2np(fn, namespace=None, np='np'):
+def numpy2np(fn: Any, namespace: dict[str, Any] | None = None, np: str = 'np') -> Any:
     if namespace is None:
         namespace = fn.__globals__
     return replace_source_code(fn, namespace, 'numpy', np)

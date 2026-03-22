@@ -29,9 +29,9 @@ from pyscfad.scf.anderson import Anderson
 from pyscfad.scipy.sparse.linalg import gmres_const_atol
 
 from pyscfad.scf.hf import SCF
-Array = Any
+from pyscfad.typing import Array
 
-def gershgorin_real_bounds(a):
+def gershgorin_real_bounds(a: Array) -> tuple[Array, Array]:
     a = np.asarray(a)
     centers = a.diagonal()
     radii = np.sum(np.abs(a), axis=1) - np.abs(centers)
@@ -39,7 +39,13 @@ def gershgorin_real_bounds(a):
     upper_bounds = centers.real + radii
     return np.min(lower_bounds), np.max(upper_bounds)
 
-def update_sp2_dm(dm, dm2, traceP, tracePP, nelectron):
+def update_sp2_dm(
+    dm: Array,
+    dm2: Array,
+    traceP: Array,
+    tracePP: Array,
+    nelectron: int | float | Array,
+) -> Array:
     def _lower(dm, dm2):
         return dm2
 
@@ -71,7 +77,7 @@ def update_sp2_dm(dm, dm2, traceP, tracePP, nelectron):
 #    tmp = a_diag_single[:,None] * a_offdiag2 + a_offdiag2 * a_diag_single[None,:]
 #    return np.diag(a_diag2) + tmp + a_offdiag2
 
-def dot2(a):
+def dot2(a: Array) -> Array:
     return np.dot(a, a)
 
 def _sp2(dm, nelectron, max_cycle=50, tol=1e-7):
@@ -94,7 +100,12 @@ def _sp2(dm, nelectron, max_cycle=50, tol=1e-7):
     dm = while_loop(cond_fun, body_fun, init_val)[1]
     return dm
 
-def sp2(h, nelectron, max_cycle=50, tol=1e-7):
+def sp2(
+    h: Array,
+    nelectron: int | float,
+    max_cycle: int = 50,
+    tol: float = 1e-7,
+) -> Array:
     n = h.shape[-1]
     theta = nelectron / n
     theta_bar = 1 - theta
@@ -114,10 +125,10 @@ def sp2(h, nelectron, max_cycle=50, tol=1e-7):
     dm = _sp2(dm0, nelectron, max_cycle=max_cycle, tol=tol)
     return dm
 
-def _ao2mo(a, x):
+def _ao2mo(a: Array, x: Array) -> Array:
     return np.dot(x.T.conj(), np.dot(a, x))
 
-def _mo2ao(a, x):
+def _mo2ao(a: Array, x: Array) -> Array:
     return np.dot(x, np.dot(a, x.T.conj()))
 
 def update_dm(

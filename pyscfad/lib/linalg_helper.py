@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import sys
 import warnings
+from typing import Any, Callable, TYPE_CHECKING
+
 import numpy
 from jax import scipy
 from pyscf import __config__
@@ -26,6 +30,9 @@ from pyscfad.lib import logger
 from pyscfad import ops
 from pyscfad.ops import stop_grad, jit
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
 DAVIDSON_LINDEP = getattr(__config__, 'lib_linalg_helper_davidson_lindep', 1e-14)
 MAX_MEMORY = getattr(__config__, 'lib_linalg_helper_davidson_max_memory', 2000)
 SORT_EIG_BY_SIMILARITY = \
@@ -33,7 +40,13 @@ SORT_EIG_BY_SIMILARITY = \
 FOLLOW_STATE = getattr(__config__, 'lib_linalg_helper_davidson_follow_state', False)
 
 
-def _sort_elast(elast, conv_last, vlast, v, log):
+def _sort_elast(
+    elast: ArrayLike,
+    conv_last: ArrayLike,
+    vlast: ArrayLike,
+    v: ArrayLike,
+    log: Any,
+) -> tuple[Array, Array]:
     head, nroots = vlast.shape
     ovlp = abs(numpy.dot(v[:head].conj().T, vlast))
     mapping = numpy.argmax(ovlp, axis=1)
@@ -54,15 +67,21 @@ def _sort_elast(elast, conv_last, vlast, v, log):
 
 # modified from pyscf v2.3
 
-def make_diag_precond(diag, level_shift=0):
-    def precond(dx, e, *args):
+def make_diag_precond(diag: ArrayLike, level_shift: float = 0) -> Callable[..., Array]:
+    def precond(dx: ArrayLike, e: float, *args: Any) -> Array:
         diagd = diag - (e - level_shift)
         diagd = diagd.at[abs(diagd)<1e-8].set(1e-8)
         return dx/diagd
     return precond
 
 @jit
-def _fill_heff_hermitian(heff, xs, ax, xt, axt):
+def _fill_heff_hermitian(
+    heff: ArrayLike,
+    xs: list[ArrayLike],
+    ax: list[ArrayLike],
+    xt: list[ArrayLike],
+    axt: list[ArrayLike],
+) -> Array:
     nrow = len(axt)
     row1 = len(ax)
     row0 = row1 - nrow
@@ -85,7 +104,11 @@ def _fill_heff_hermitian(heff, xs, ax, xt, axt):
         axi = None
     return heff
 
-def _qr(xs, dot, lindep=1e-14):
+def _qr(
+    xs: list[ArrayLike],
+    dot: Callable[..., Any],
+    lindep: float = 1e-14,
+) -> tuple[Array, Array]:
     nvec = len(xs)
     dtype = xs[0].dtype
     qs = np.empty((nvec,xs[0].size), dtype=dtype)
@@ -109,7 +132,7 @@ def _qr(xs, dot, lindep=1e-14):
     return qs[:nv], np.linalg.inv(rmat[:nv,:nv])
 
 @jit
-def _outprod_to_subspace(v, xs):
+def _outprod_to_subspace(v: ArrayLike, xs: list[ArrayLike]) -> Array:
     ndim = v.ndim
     if ndim == 1:
         v = v[:,None]
@@ -124,7 +147,14 @@ def _outprod_to_subspace(v, xs):
     return x0
 _gen_x0 = _outprod_to_subspace
 
-def _project_xt_(xt, xs, e, threshold, dot, precond):
+def _project_xt_(
+    xt: list[ArrayLike | None],
+    xs: list[ArrayLike],
+    e: ArrayLike,
+    threshold: float,
+    dot: Callable[..., Any],
+    precond: Callable[..., Any],
+) -> tuple[list[ArrayLike | None], bool]:
     ill_precond = False
     for i, xsi in enumerate(xs):
         xsi = np.asarray(xsi)
@@ -143,7 +173,11 @@ def _project_xt_(xt, xs, e, threshold, dot, precond):
         xsi = None
     return xt, ill_precond
 
-def _normalize_xt_(xt, threshold, dot):
+def _normalize_xt_(
+    xt: list[ArrayLike | None],
+    threshold: float,
+    dot: Callable[..., Any],
+) -> tuple[list[ArrayLike], float]:
     norm_min = 1
     out = []
     for i, xi in enumerate(xt):
@@ -160,7 +194,7 @@ def davidson(aop, x0, precond, tol=1e-12, max_cycle=50, max_space=12,
              lindep=DAVIDSON_LINDEP, max_memory=MAX_MEMORY,
              dot=np.dot, callback=None,
              nroots=1, lessio=False, pick=None, verbose=logger.WARN,
-             follow_state=FOLLOW_STATE):
+             follow_state=FOLLOW_STATE) -> tuple[Any, Any]:
     e, x = davidson1(lambda xs: [aop(x) for x in xs],
                      x0, precond, tol, max_cycle, max_space, lindep,
                      max_memory, dot, callback, nroots, lessio, pick, verbose,
@@ -175,7 +209,7 @@ def davidson1(aop, x0, precond, tol=1e-12, max_cycle=50, max_space=12,
               dot=np.dot, callback=None,
               nroots=1, lessio=False, pick=None, verbose=logger.WARN,
               follow_state=FOLLOW_STATE, tol_residual=None,
-              fill_heff=_fill_heff_hermitian):
+              fill_heff=_fill_heff_hermitian) -> tuple[ArrayLike, ArrayLike, list[Any]]:
     if isinstance(verbose, logger.Logger):
         log = verbose
     else:

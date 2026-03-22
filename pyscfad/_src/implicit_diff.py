@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import inspect
 import operator
 from functools import partial
+from typing import Any
+
 import jax
 from jax.tree_util import tree_map
 from jax.scipy.sparse.linalg import gmres
@@ -22,20 +26,20 @@ from pyscfad.backend import get_backend
 
 _Sub = partial(tree_map, operator.sub)
 
-def _Scalar_mul(scal, tree_x):
+def _Scalar_mul(scal: Any, tree_x: Any) -> Any:
     return tree_map(lambda x: scal * x, tree_x)
 
-def _map_back(diff_items, items, keys):
+def _map_back(diff_items: Any, items: Any, keys: Any) -> tuple[Any, ...]:
     new_items = list(items)
     for k, i in enumerate(keys):
         new_items[i] = diff_items[k]
     return tuple(new_items)
 
-def root_vjp(optimality_fun, sol, args, cotangent,
-             solve=gmres, nondiff_argnums=(),
-             optfn_has_aux=False, solver_kwargs=None,
-             gen_precond=None,
-             custom_vjp_from_optcond=False):
+def root_vjp(optimality_fun: Any, sol: Any, args: Any, cotangent: Any,
+             solve: Any = gmres, nondiff_argnums: tuple[int, ...] = (),
+             optfn_has_aux: bool = False, solver_kwargs: dict[str, Any] | None = None,
+             gen_precond: Any = None,
+             custom_vjp_from_optcond: bool = False) -> list[Any]:
     if solver_kwargs is None:
         solver_kwargs = {}
 
@@ -74,11 +78,11 @@ def root_vjp(optimality_fun, sol, args, cotangent,
     vjps = _map_back(diff_vjps, vjps, keys)
     return vjps
 
-def _custom_root(solver_fun, optimality_fun, solve,
-                 has_aux=False, nondiff_argnums=(), use_converged_args=None,
-                 optfn_has_aux=False, solver_kwargs=None,
-                 gen_precond=None,
-                 custom_vjp_from_optcond=False):
+def _custom_root(solver_fun: Any, optimality_fun: Any, solve: Any,
+                 has_aux: bool = False, nondiff_argnums: tuple[int, ...] = (), use_converged_args: dict[int, int] | None = None,
+                 optfn_has_aux: bool = False, solver_kwargs: dict[str, Any] | None = None,
+                 gen_precond: Any = None,
+                 custom_vjp_from_optcond: bool = False) -> Any:
     solver_fun_sig = inspect.signature(solver_fun)
     optimality_fun_sig = inspect.signature(optimality_fun)
 
@@ -131,11 +135,11 @@ def _custom_root(solver_fun, optimality_fun, solve,
 
     return wrapped_solver_fun
 
-def custom_root(optimality_fun, solve=None, has_aux=False,
-                nondiff_argnums=(), use_converged_args=None,
-                optfn_has_aux=False, solver_kwargs=None,
-                gen_precond=None,
-                custom_vjp_from_optcond=False):
+def custom_root(optimality_fun: Any, solve: Any = None, has_aux: bool = False,
+                nondiff_argnums: tuple[int, ...] = (), use_converged_args: dict[int, int] | None = None,
+                optfn_has_aux: bool = False, solver_kwargs: dict[str, Any] | None = None,
+                gen_precond: Any = None,
+                custom_vjp_from_optcond: bool = False) -> Any:
     if solve is None:
         solve = gmres
 
@@ -150,11 +154,11 @@ def custom_root(optimality_fun, solve=None, has_aux=False,
 
     return wrapper
 
-def custom_fixed_point(fixed_point_fun, solve=None, has_aux=False,
-                       nondiff_argnums=(), use_converged_args=None,
-                       optfn_has_aux=False, solver_kwargs=None,
-                       gen_precond=None,
-                       custom_vjp_from_optcond=False):
+def custom_fixed_point(fixed_point_fun: Any, solve: Any = None, has_aux: bool = False,
+                       nondiff_argnums: tuple[int, ...] = (), use_converged_args: dict[int, int] | None = None,
+                       optfn_has_aux: bool = False, solver_kwargs: dict[str, Any] | None = None,
+                       gen_precond: Any = None,
+                       custom_vjp_from_optcond: bool = False) -> Any:
 
     def optimality_fun(x0, *args):
         return _Sub(fixed_point_fun(x0, *args), x0)
@@ -169,12 +173,12 @@ def custom_fixed_point(fixed_point_fun, solve=None, has_aux=False,
                        gen_precond=gen_precond,
                        custom_vjp_from_optcond=custom_vjp_from_optcond)
 
-def make_implicit_diff(fn, implicit_diff=False, fixed_point=True,
-                       optimality_cond=None, solver=None, has_aux=False,
-                       nondiff_argnums=(), use_converged_args=None,
-                       optimality_fun_has_aux=False,
-                       solver_kwargs=None, gen_precond=None,
-                       custom_vjp_from_optcond=False):
+def make_implicit_diff(fn: Any, implicit_diff: bool = False, fixed_point: bool = True,
+                       optimality_cond: Any = None, solver: Any = None, has_aux: bool = False,
+                       nondiff_argnums: tuple[int, ...] = (), use_converged_args: dict[int, int] | None = None,
+                       optimality_fun_has_aux: bool = False,
+                       solver_kwargs: dict[str, Any] | None = None, gen_precond: Any = None,
+                       custom_vjp_from_optcond: bool = False) -> Any:
     """Wrap a function for implicit differentiation.
 
     Parameters

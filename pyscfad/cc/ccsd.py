@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from functools import reduce
 import numpy
 from pyscf.cc import ccsd as pyscf_ccsd
@@ -25,6 +29,9 @@ from pyscfad.lib import logger
 from pyscfad import config
 from pyscfad.implicit_diff import make_implicit_diff
 from pyscfad.tools.linear_solver import gen_gmres
+
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
 
 # attributes explicitly appearing in :fun:`update_amps` are dynamic
 ERI_Tracers = ('fock', 'mo_energy',
@@ -76,8 +83,16 @@ def _iter(amp, mycc, eris, *,
     return amp, conv
 
 
-def kernel(mycc, eris=None, t1=None, t2=None, max_cycle=50, tol=1e-8,
-           tolnormt=1e-6, verbose=None):
+def kernel(
+    mycc: CCSD,
+    eris: _ChemistsERIs | None = None,
+    t1: ArrayLike | None = None,
+    t2: ArrayLike | None = None,
+    max_cycle: int = 50,
+    tol: float = 1e-8,
+    tolnormt: float = 1e-6,
+    verbose: Any = None,
+) -> tuple[Any, Any, Any, Any]:
     log = logger.new_logger(mycc, verbose)
     if eris is None:
         eris = mycc.ao2mo(mycc.mo_coeff)

@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 '''Impurity solver for LNO CCSD/CCSD(T).
 '''
 
 import numpy
 from functools import reduce
+from typing import Any
 
 from pyscf.lib import logger
 from pyscf.mp.mp2 import _mo_without_core
@@ -29,11 +32,11 @@ from pyscfad.lno import lno_base
 from pyscfad.lno import ccsd_t as ccsd_t_mod
 
 class RCCSD(dfccsd.RCCSD):
-    def ao2mo(self, mo_coeff=None, fockao=None):
+    def ao2mo(self, mo_coeff: Any = None, fockao: Any = None) -> Any:
         return _make_df_eris_incore(self, mo_coeff, fockao)
 
 class RDCSD(dfdcsd.RDCSD):
-    def ao2mo(self, mo_coeff=None, fockao=None):
+    def ao2mo(self, mo_coeff: Any = None, fockao: Any = None) -> Any:
         return _make_df_eris_incore(self, mo_coeff, fockao)
 
 class _ChemistsERIs(dfccsd._ChemistsERIs):
@@ -86,8 +89,8 @@ def _make_df_eris_incore(cc, mo_coeff=None, fockao=None):
     return eris
 
 
-def impurity_solve(mf, mo_coeff, lo_coeff, eris=None, frozen=None,
-                   verbose_imp=0, ccsd_t=False, dcsd=False):
+def impurity_solve(mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, frozen: Any = None,
+                   verbose_imp: int = 0, ccsd_t: bool = False, dcsd: bool = False) -> tuple[Any, Any, Any]:
     r'''Solve impurity problem and calculate local correlation energy.
 
     Args:
@@ -164,7 +167,7 @@ def impurity_solve(mf, mo_coeff, lo_coeff, eris=None, frozen=None,
     del log
     return (elcorr_pt2, elcorr_cc, elcorr_cc_t)
 
-def get_maskact(frozen, nmo):
+def get_maskact(frozen: Any, nmo: int) -> tuple[Any, Any]:
     if frozen is None:
         frozen = 0
     elif len(frozen) == 0:
@@ -177,7 +180,7 @@ def get_maskact(frozen, nmo):
         maskact = numpy.array([i not in frozen for i in range(nmo)])
     return frozen, maskact
 
-def mp2_fragment_energy(eris, t2, prj):
+def mp2_fragment_energy(eris: Any, t2: Any, prj: Any) -> Any:
     m = np.dot(prj.T, prj)
     ovov = np.asarray(eris.ovov)
     eij  = 2*np.einsum('pjab,qajb->pq', t2, ovov)
@@ -185,7 +188,7 @@ def mp2_fragment_energy(eris, t2, prj):
     e2 = np.einsum('ij,ij', eij, m)
     return e2
 
-def ccsd_fragment_energy(eris, t1, t2, prj):
+def ccsd_fragment_energy(eris: Any, t1: Any, t2: Any, prj: Any) -> Any:
     nocc = t1.shape[0]
     m = np.dot(prj.T, prj)
     fov = eris.fock[:nocc,nocc:]
@@ -199,7 +202,7 @@ def ccsd_fragment_energy(eris, t1, t2, prj):
     return e2
 
 class LNOCCSD(lno_base.LNO):
-    def __init__(self, mf, thresh=1e-4, frozen=None, fock=None, s1e=None, **kwargs):
+    def __init__(self, mf: Any, thresh: float = 1e-4, frozen: Any = None, fock: Any = None, s1e: Any = None, **kwargs: Any) -> None:
         super().__init__(mf, thresh=thresh, frozen=frozen, fock=fock, s1e=s1e, **kwargs)
         self.efrag_cc = None
         self.efrag_pt2 = None
@@ -207,12 +210,12 @@ class LNOCCSD(lno_base.LNO):
         self.ccsd_t = False
         self.dcsd = False
 
-    def impurity_solve(self, mf, mo_coeff, lo_coeff, eris=None, frozen=None):
+    def impurity_solve(self, mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, frozen: Any = None) -> tuple[Any, Any, Any]:
         return impurity_solve(mf, mo_coeff, lo_coeff, eris=eris, frozen=frozen,
                               verbose_imp=self.verbose_imp, ccsd_t=self.ccsd_t,
                               dcsd=self.dcsd)
 
-    def _post_proc(self, frag_res, frag_wghtlist):
+    def _post_proc(self, frag_res: list[Any], frag_wghtlist: Any) -> None:
         ''' Post processing results returned by ``impurity_solve`` collected in ``frag_res``.
         '''
         efrag_pt2 = efrag_cc = efrag_cc_t = 0.0
@@ -226,51 +229,51 @@ class LNOCCSD(lno_base.LNO):
         self.efrag_cc_t = efrag_cc_t
 
     @property
-    def e_corr(self):
+    def e_corr(self) -> Any:
         return self.e_corr_ccsd + self.e_corr_ccsd_t
 
     @property
-    def e_corr_ccsd(self):
+    def e_corr_ccsd(self) -> Any:
         e_corr = self.efrag_cc
         return e_corr
 
     @property
-    def e_corr_pt2(self):
+    def e_corr_pt2(self) -> Any:
         e_corr = self.efrag_pt2
         return e_corr
 
     @property
-    def e_corr_ccsd_t(self):
+    def e_corr_ccsd_t(self) -> Any:
         e_corr = self.efrag_cc_t
         return e_corr
 
     @property
-    def e_tot_ccsd(self):
+    def e_tot_ccsd(self) -> Any:
         return self.e_corr_ccsd + self._scf.e_tot
 
     @property
-    def e_tot_pt2(self):
+    def e_tot_pt2(self) -> Any:
         return self.e_corr_pt2 + self._scf.e_tot
 
-    def e_corr_pt2corrected(self, ept2):
+    def e_corr_pt2corrected(self, ept2: Any) -> Any:
         return self.e_corr - self.e_corr_pt2 + ept2
 
-    def e_tot_pt2corrected(self, ept2):
+    def e_tot_pt2corrected(self, ept2: Any) -> Any:
         return self._scf.e_tot + self.e_corr_pt2corrected(ept2)
 
-    def e_corr_ccsd_pt2corrected(self, ept2):
+    def e_corr_ccsd_pt2corrected(self, ept2: Any) -> Any:
         return self.e_corr_ccsd - self.e_corr_pt2 + ept2
 
-    def e_tot_ccsd_pt2corrected(self, ept2):
+    def e_tot_ccsd_pt2corrected(self, ept2: Any) -> Any:
         return self._scf.e_tot_ccsd + self.e_corr_pt2corrected(ept2)
 
-    def e_corr_ccsd_t_pt2corrected(self, ept2):
+    def e_corr_ccsd_t_pt2corrected(self, ept2: Any) -> Any:
         return self.e_corr_ccsd_t - self.e_corr_pt2 + ept2
 
-    def e_tot_ccsd_t_pt2corrected(self, ept2):
+    def e_tot_ccsd_t_pt2corrected(self, ept2: Any) -> Any:
         return self._scf.e_tot_ccsd_t + self.e_corr_pt2corrected(ept2)
 
 class LNOCCSD_T(LNOCCSD):
-    def __init__(self, mf, thresh=1e-4, frozen=None, **kwargs):
+    def __init__(self, mf: Any, thresh: float = 1e-4, frozen: Any = None, **kwargs: Any) -> None:
         super().__init__(mf, thresh=thresh, frozen=frozen, **kwargs)
         self.ccsd_t = True
