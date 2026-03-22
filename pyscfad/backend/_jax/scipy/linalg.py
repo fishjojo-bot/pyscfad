@@ -25,9 +25,9 @@ from jax._src.numpy.util import promote_dtypes_inexact
 from jax._src.lax.linalg import _T, _H
 from ..lax import linalg as lax_linalg
 
-def eigh(a, b=None, *,
-         lower=True,
-         eigvals_only=False,
+def eigh(a: Any, b: Any = None, *,
+         lower: bool = True,
+         eigvals_only: bool = False,
          overwrite_a=False,
          overwrite_b=False,
          type=1,
@@ -122,4 +122,5 @@ def _svd_jvp(primals, tangents):
     dV = dV.at[..., m:, :m].set(dD2.conj().T)
     dV = V @ dV
     return (U, s, Vt), (dU, ds, _H(dV))
+
 
