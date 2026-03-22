@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 from functools import partial
 import warnings
 from jax import tree_util
@@ -68,12 +71,12 @@ def _dict_equality(d1, d2):
 
 
 class _AuxData:
-    def __init__(self, data, exclude_name=()):
+    def __init__(self, data: dict[str, Any], exclude_name: tuple[str, ...] = ()): 
         self.data = dict(sorted(data.items()))
         self.exclude_name = exclude_name
 
     @property
-    def data_for_hash(self):
+    def data_for_hash(self) -> dict[str, Any]:
         if self.exclude_name:
             return {k : v for k, v in self.data.items() if k not in self.exclude_name}
         else:
