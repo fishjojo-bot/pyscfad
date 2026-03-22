@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 from pyscf.ao2mo import incore
 from pyscf.ao2mo.incore import iden_coeffs
 from pyscfad import numpy as np
@@ -24,7 +27,7 @@ def full(eri_ao, mo_coeff, verbose=0, compact=True, **kwargs):
         raise NotImplementedError
     return general(eri_ao, (mo_coeff,)*4, verbose, compact)
 
-def general(eri_ao, mo_coeffs, verbose=0, compact=True, **kwargs):
+def general(eri_ao: Any, mo_coeffs: Any, verbose: int = 0, compact: bool = True, **kwargs) -> Any:
     nao = mo_coeffs[0].shape[0]
     if eri_ao.size == nao**4:
         return _eri_ao2mo_s1(eri_ao, mo_coeffs)

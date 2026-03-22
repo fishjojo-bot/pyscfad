@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 import h5py
 
 # pylint: disable=consider-using-f-string
-def dump(chkfile, key, value):
+def dump(chkfile: str, key: str, value: Any) -> None:
     def save_as_group(key, value, root):
         if isinstance(value, dict):
             root1 = root.create_group(key)

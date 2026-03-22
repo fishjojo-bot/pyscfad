@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 from pyscf.ao2mo import addons as pyscf_addons
 from pyscfad import lib
 from pyscfad.ops import is_array, vmap
 
 class load(pyscf_addons.load):
-    def __enter__(self):
+    def __enter__(self) -> Any:
         if is_array(self.eri):
             return self.eri
         else:
             raise NotImplementedError
 
 
-def restore(symmetry, eri, norb, tao=None):
+def restore(symmetry: int | str, eri: Any, norb: int, tao=None) -> Any:
     targetsym = _stand_sym_code(symmetry)
     if targetsym not in ('8', '4', '1', '2kl', '2ij'):
         raise ValueError(f'symmetry = {symmetry}')
@@ -49,7 +52,7 @@ def _convert_s4_to_s1(eri, norb):
     return eri
 
 
-def _stand_sym_code(sym):
+def _stand_sym_code(sym: int | str) -> str:
     if isinstance(sym, int):
         return str(sym)
     elif 's' == sym[0]:
