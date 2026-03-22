@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any, Callable
+
 import numpy as np
 
-def is_array(x):
+def is_array(x: Any) -> bool:
     # FIXME should np.generic be included?
     return isinstance(x, (np.ndarray, np.generic))
 
-def to_numpy(x):
+def to_numpy(x: Any) -> Any:
     return np.asarray(x)
 
-def convert_to_tensor(x, dtype=None, **kwargs):
+def convert_to_tensor(x: Any, dtype: Any = None, **kwargs) -> Any:
     return np.asarray(x, dtype=dtype, **kwargs)
 
-def vmap(fun, in_axes=0, out_axes=0, chunk_size=None, signature=None):
+def vmap(fun: Callable[..., Any], in_axes: Any = 0, out_axes: int = 0, chunk_size: int | None = None, signature: str | None = None) -> Callable[..., Any]:
     if not isinstance(out_axes, int):
         raise NotImplementedError
 
@@ -62,10 +65,10 @@ def vmap(fun, in_axes=0, out_axes=0, chunk_size=None, signature=None):
 
     return vmap_f
 
-def index_add(x, idx, y):
+def index_add(x: Any, idx: Any, y: Any) -> Any:
     np.add.at(x, idx, y)
     return x
 
-def index_mul(x, idx, y):
+def index_mul(x: Any, idx: Any, y: Any) -> Any:
     np.multiply.at(x, idx, y)
     return x

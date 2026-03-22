@@ -12,20 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 import torch
 
-def cholesky(a, **kwargs):
+def cholesky(a: Any, **kwargs) -> Any:
     a = torch.as_tensor(a)
     return torch.linalg.cholesky(a, **kwargs)
 
-def eigh(a, UPLO='L', **kwargs):
+def eigh(a: Any, UPLO: str = 'L', **kwargs) -> tuple[Any, Any]:
     a = torch.as_tensor(a)
     return torch.linalg.eigh(a, UPLO, **kwargs)
 
-def inv(a, **kwargs):
+def inv(a: Any, **kwargs) -> Any:
     a = torch.as_tensor(a)
     return torch.linalg.inv(a, **kwargs)
 
-def norm(x, ord=None, axis=None, keepdims=False, **kwargs):
+def norm(x: Any, ord: Any = None, axis: Any = None, keepdims: bool = False, **kwargs) -> Any:
     x = torch.as_tensor(x)
     return torch.linalg.norm(x, ord, axis, keepdims, **kwargs)

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 import torch
 
-def iscomplexobj(x):
+def iscomplexobj(x: Any) -> bool:
     return torch.is_complex(x)
