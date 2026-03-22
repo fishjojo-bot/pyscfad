@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from pyscf import __config__
 from pyscf.lib import current_memory
 from pyscf.lib import logger
@@ -23,22 +27,39 @@ from pyscfad.ops import stop_grad
 from pyscfad.scf import hf
 from pyscfad.dft import numint
 
+if TYPE_CHECKING:
+    from pyscfad.gto import Mole
+    from pyscfad.typing import ArrayLike
+
 class VXC(pytree.PytreeNode):
     _dynamic_attr = ['vxc', 'ecoul', 'exc', 'vj', 'vk']
 
-    def __init__(self, vxc=None,
-                 ecoul=None, exc=None,
-                 vj=None, vk=None):
+    def __init__(
+        self,
+        vxc: ArrayLike | None = None,
+        ecoul: ArrayLike | float | None = None,
+        exc: ArrayLike | float | None = None,
+        vj: ArrayLike | None = None,
+        vk: ArrayLike | None = None,
+    ) -> None:
         self.vxc = vxc
         self.ecoul = ecoul
         self.exc = exc
         self.vj = vj
         self.vk = vk
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.vxc.__repr__()
 
-def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
+def get_veff(
+    ks: RKS,
+    mol: Mole | None = None,
+    dm: ArrayLike | None = None,
+    dm_last: ArrayLike = 0,
+    vhf_last: VXC | ArrayLike = 0,
+    hermi: int = 1,
+    **kwargs: Any,
+) -> VXC:
     if mol is None:
         mol = ks.mol
     if dm is None:
@@ -120,7 +141,12 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
     del log
     return vxc
 
-def energy_elec(ks, dm=None, h1e=None, vhf=None):
+def energy_elec(
+    ks: RKS,
+    dm: ArrayLike | None = None,
+    h1e: ArrayLike | None = None,
+    vhf: VXC | None = None,
+) -> tuple[float, Any]:
     if dm is None:
         dm = ks.make_rdm1()
     if h1e is None:
@@ -135,14 +161,14 @@ def energy_elec(ks, dm=None, h1e=None, vhf=None):
     logger.debug(ks, 'E1 = %s  Ecoul = %s  Exc = %s', e1, vhf.ecoul, vhf.exc)
     return (e1+e2).real, e2
 
-def prune_small_rho_grids_(ks, mol, dm, grids):
+def prune_small_rho_grids_(ks, mol: Mole, dm: ArrayLike, grids) -> Any:
     rho = ks._numint.get_rho(stop_grad(mol),
                              stop_grad(dm),
                              grids,
                              ks.max_memory)
     return grids.prune_by_density_(rho, ks.small_rho_cutoff)
 
-def _dft_common_init_(mf, xc='LDA,VWN'):
+def _dft_common_init_(mf, xc: str = 'LDA,VWN') -> None:
     mf.xc = xc
     mf.nlc = ''
     mf.disp = None
@@ -150,7 +176,7 @@ def _dft_common_init_(mf, xc='LDA,VWN'):
     mf.nlcgrids = None
     mf._numint = numint.NumInt()
 
-def _dft_common_post_init_(mf):
+def _dft_common_post_init_(mf) -> None:
     if mf.grids is None:
         mf.grids = gen_grid.Grids(stop_grad(mf.mol))
         mf.grids.level = getattr(
@@ -168,13 +194,13 @@ class KohnShamDFT(pyscf_rks.KohnShamDFT):
     __init__ = _dft_common_init_
     __post_init__ = _dft_common_post_init_
 
-    def do_nlc(self):
+    def do_nlc(self) -> bool:
         if isinstance(self.xc, str):
             return super().do_nlc()
         else:
             return False
 
-    def reset(self, mol=None):
+    def reset(self, mol: Mole | None = None) -> KohnShamDFT:
         hf.SCF.reset(self, mol)
         if getattr(self, 'grids', None) is not None:
             self.grids.reset(mol)
@@ -182,7 +208,11 @@ class KohnShamDFT(pyscf_rks.KohnShamDFT):
             self.nlcgrids.reset(mol)
         return self
 
-    def initialize_grids(self, mol=None, dm=None):
+    def initialize_grids(
+        self,
+        mol: Mole | None = None,
+        dm: ArrayLike | None = None,
+    ) -> KohnShamDFT:
         if mol is None:
             mol = self.mol
 
@@ -224,7 +254,7 @@ class RKS(KohnShamDFT, hf.RHF):
     -----
     Grid response is not considered with AD.
     """
-    def __init__(self, mol, xc='LDA,VWN', **kwargs):
+    def __init__(self, mol: Mole, xc: str = 'LDA,VWN', **kwargs: Any) -> None:
         hf.RHF.__init__(self, mol)
         KohnShamDFT.__init__(self, xc)
         self.__dict__.update(kwargs)

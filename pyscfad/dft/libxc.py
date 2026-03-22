@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import partial
+from typing import TYPE_CHECKING, Any
 from pyscf.dft import libxc
 # pylint: disable=unused-import
 from pyscf.dft.libxc import (
@@ -32,7 +35,18 @@ from pyscf.dft.libxc import (
 from pyscfad import numpy as np
 from pyscfad.ops import jit, custom_jvp
 
-def eval_xc(xc_code, rho, spin=0, relativity=0, deriv=1, omega=None, verbose=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+
+def eval_xc(
+    xc_code: str,
+    rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+    spin: int = 0,
+    relativity: int = 0,
+    deriv: int = 1,
+    omega: float | None = None,
+    verbose: Any = None,
+) -> tuple[ArrayLike, tuple[Any, ...], None, None]:
     # NOTE only consider exc and vxc
     if deriv > 1:
         raise NotImplementedError

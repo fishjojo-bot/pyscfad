@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from pyscf.dft import uks as pyscf_uks
 from pyscf.lib import current_memory
 from pyscfad import numpy as np
@@ -19,7 +23,19 @@ from pyscfad.lib import logger
 from pyscfad.scf import uhf
 from pyscfad.dft import rks
 
-def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
+if TYPE_CHECKING:
+    from pyscfad.gto import Mole
+    from pyscfad.typing import ArrayLike
+
+def get_veff(
+    ks: UKS,
+    mol: Mole | None = None,
+    dm: ArrayLike | None = None,
+    dm_last: ArrayLike = 0,
+    vhf_last: rks.VXC | ArrayLike = 0,
+    hermi: int = 1,
+    **kwargs: Any,
+) -> rks.VXC:
     log = logger.new_logger(ks)
 
     if mol is None:
@@ -109,7 +125,12 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
         vxc.ecoul = None
     return vxc
 
-def energy_elec(ks, dm=None, h1e=None, vhf=None):
+def energy_elec(
+    ks: UKS,
+    dm: ArrayLike | None = None,
+    h1e: ArrayLike | None = None,
+    vhf: rks.VXC | None = None,
+) -> tuple[float, Any]:
     if dm is None:
         dm  = ks.make_rdm1()
     if h1e is None:
@@ -121,7 +142,7 @@ def energy_elec(ks, dm=None, h1e=None, vhf=None):
     return rks.energy_elec(ks, dm, h1e, vhf)
 
 class UKS(rks.KohnShamDFT, uhf.UHF):
-    def __init__(self, mol, xc='LDA,VWN', **kwargs):
+    def __init__(self, mol: Mole, xc: str = 'LDA,VWN', **kwargs: Any) -> None:
         uhf.UHF.__init__(self, mol)
         rks.KohnShamDFT.__init__(self, xc)
         self.__dict__.update(kwargs)

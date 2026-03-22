@@ -16,7 +16,10 @@
 Interface to autoxc
 """
 
+from __future__ import annotations
+
 from functools import cached_property, partial
+from typing import TYPE_CHECKING, Any
 import numpy
 import autoxc
 from autoxc import api
@@ -28,11 +31,19 @@ from pyscf.dft.libxc import (
 from pyscfad import numpy as np
 from pyscfad.ops import jit
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike
+
 __version__ = autoxc.__version__
 __reference__ = "The autoxc authors, unpublished"
 
 class XCFunctionalCache:
-    def __init__(self, xc_code, spin=0, omega=None):
+    def __init__(
+        self,
+        xc_code: dict[str, dict[str, Any]],
+        spin: int = 0,
+        omega: float | None = None,
+    ) -> None:
         assert isinstance(xc_code, dict)
 
         self.nfunc = len(xc_code)
@@ -51,7 +62,7 @@ class XCFunctionalCache:
         self.params = params
 
     @cached_property
-    def xc_type(self):
+    def xc_type(self) -> str:
         if self.nfunc == 0:
             return "HF"
 
@@ -68,10 +79,14 @@ class XCFunctionalCache:
         else:
             return "UNKNOWN"
 
-def _get_xc(xc_code, spin=0, omega=None):
+def _get_xc(
+    xc_code: dict[str, dict[str, Any]],
+    spin: int = 0,
+    omega: float | None = None,
+) -> XCFunctionalCache:
     return XCFunctionalCache(xc_code, spin, omega)
 
-def xc_type(xc_code):
+def xc_type(xc_code: str | dict[str, dict[str, Any]]) -> str:
     if isinstance(xc_code, str):
         return libxc_xc_type(xc_code)
     elif isinstance(xc_code, dict):
@@ -80,12 +95,15 @@ def xc_type(xc_code):
     else:
         raise KeyError(f"xc functional {xc_code} is not supported")
 
-def gen_eval_xc(xc_code, deriv=0):
+def gen_eval_xc(
+    xc_code: dict[str, dict[str, Any]],
+    deriv: int = 0,
+) -> tuple[list[Any], list[Any], list[Any]]:
     xc = _get_xc(xc_code)
     fns = [api.gen_eval_xc(x, deriv=deriv) for x in xc.xc_arr]
     return fns, xc.facs, xc.params
 
-def is_hybrid_xc(xc_code):
+def is_hybrid_xc(xc_code: str | dict[str, dict[str, Any]] | None) -> bool:
     if xc_code is None or isinstance(xc_code, dict):
         return False
     else:
@@ -128,7 +146,20 @@ def _eval_xc(xc_code, rho, spin=0, deriv=1, omega=None):
         out = _eval_xc_u2r(out, xctype, deriv)
     return out
 
-def eval_xc(xc_code, rho, spin=0, relativity=0, deriv=1, omega=None, verbose=None):
+def eval_xc(
+    xc_code: str | dict[str, dict[str, Any]],
+    rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+    spin: int = 0,
+    relativity: int = 0,
+    deriv: int = 1,
+    omega: float | None = None,
+    verbose: Any = None,
+) -> tuple[
+    ArrayLike,
+    list[ArrayLike] | None,
+    list[ArrayLike] | None,
+    list[ArrayLike] | None,
+]:
     outbuf = _eval_xc(xc_code, rho, spin=spin, deriv=deriv, omega=omega)
     exc = outbuf[0]
     vxc = fxc = kxc = None
@@ -165,7 +196,13 @@ def eval_xc(xc_code, rho, spin=0, relativity=0, deriv=1, omega=None, verbose=Non
         raise NotImplementedError
     return exc, vxc, fxc, kxc
 
-def eval_xc1(xc_code, rho, spin=0, deriv=1, omega=None):
+def eval_xc1(
+    xc_code: str | dict[str, dict[str, Any]],
+    rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+    spin: int = 0,
+    deriv: int = 1,
+    omega: float | None = None,
+) -> ArrayLike:
     out = _eval_xc(xc_code, rho, spin=spin, deriv=deriv, omega=omega)
     xctype = xc_type(xc_code)
     idx = _libxc_to_xcfun_indices(xctype, spin, deriv)

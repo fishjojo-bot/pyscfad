@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import warnings
 from functools import partial
+from typing import TYPE_CHECKING, Any
 import numpy
 from pyscf.dft import numint
 from pyscf.dft.gen_grid import BLKSIZE
@@ -30,8 +33,21 @@ try:
 except ImportError:
     from pyscfad.dft import libxc
 
-def eval_mat(mol, ao, weight, rho, vxc,
-             non0tab=None, xctype='LDA', spin=0, verbose=None):
+if TYPE_CHECKING:
+    from pyscfad.gto import Mole
+    from pyscfad.typing import Array, ArrayLike
+
+def eval_mat(
+    mol: Mole,
+    ao: ArrayLike,
+    weight: ArrayLike,
+    rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+    vxc: Any,
+    non0tab: ArrayLike | None = None,
+    xctype: str = 'LDA',
+    spin: int = 0,
+    verbose: Any = None,
+) -> Array:
     xctype = xctype.upper()
     if xctype in ['LDA', 'HF']:
         ngrids, _ = ao.shape
@@ -104,8 +120,17 @@ def eval_mat(mol, ao, weight, rho, vxc,
 
     return mat + mat.T.conj()
 
-def nr_rks(ni, mol, grids, xc_code, dms, relativity=0, hermi=1,
-           max_memory=2000, verbose=None):
+def nr_rks(
+    ni: Any,
+    mol: Mole,
+    grids: Any,
+    xc_code: str,
+    dms: ArrayLike,
+    relativity: int = 0,
+    hermi: int = 1,
+    max_memory: int = 2000,
+    verbose: Any = None,
+) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
     xctype = ni._xc_type(xc_code)
     make_rho, nset, nao = ni._gen_rho_evaluator(mol, dms, hermi)
     ao_loc = mol.ao_loc_nr()
@@ -185,8 +210,17 @@ def nr_rks(ni, mol, grids, xc_code, dms, relativity=0, hermi=1,
         vmat = vmat[0]
     return nelec, excsum, vmat
 
-def nr_uks(ni, mol, grids, xc_code, dms, relativity=0, hermi=1,
-           max_memory=2000, verbose=None):
+def nr_uks(
+    ni: Any,
+    mol: Mole,
+    grids: Any,
+    xc_code: str,
+    dms: ArrayLike,
+    relativity: int = 0,
+    hermi: int = 1,
+    max_memory: int = 2000,
+    verbose: Any = None,
+) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
 
     xctype = ni._xc_type(xc_code)
 
@@ -321,8 +355,16 @@ def _format_uks_dm(dms):
         dma, dmb = dms
     return dma, dmb
 
-def eval_rho(mol, ao, dm, non0tab=None, xctype='LDA', hermi=0,
-             with_lapl=True, verbose=None):
+def eval_rho(
+    mol: Mole,
+    ao: ArrayLike,
+    dm: ArrayLike,
+    non0tab: ArrayLike | None = None,
+    xctype: str = 'LDA',
+    hermi: int = 0,
+    with_lapl: bool = True,
+    verbose: Any = None,
+) -> Array:
     xctype = xctype.upper()
 
     if xctype == 'LDA' or xctype == 'HF':
@@ -445,8 +487,17 @@ def _uks_gga_wv0(rho, vxc, weight):
     wvb = np.concatenate((wv_rho_b.reshape(1,-1), wv_sigma_b))
     return wva, wvb
 
-def nr_nlc_vxc(ni, mol, grids, xc_code, dm, relativity=0, hermi=1,
-               max_memory=2000, verbose=None):
+def nr_nlc_vxc(
+    ni: Any,
+    mol: Mole,
+    grids: Any,
+    xc_code: str,
+    dm: ArrayLike,
+    relativity: int = 0,
+    hermi: int = 1,
+    max_memory: int = 2000,
+    verbose: Any = None,
+) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
     make_rho, nset, nao = ni._gen_rho_evaluator(mol, dm, hermi, False, grids)
     assert nset == 1
 
@@ -525,8 +576,16 @@ class NumInt(numint.NumInt):
 
         return make_rho, ndms, nao
 
-    def eval_xc(self, xc_code, rho, spin=0, relativity=0, deriv=1, omega=None,
-                verbose=None):
+    def eval_xc(
+        self,
+        xc_code: str,
+        rho: ArrayLike | tuple[ArrayLike, ArrayLike],
+        spin: int = 0,
+        relativity: int = 0,
+        deriv: int = 1,
+        omega: float | None = None,
+        verbose: Any = None,
+    ) -> tuple[ArrayLike, tuple[Any, ...], None, None]:
         if omega is None:
             omega = self.omega
         return libxc.eval_xc(xc_code, rho, spin, relativity, deriv,
