@@ -118,14 +118,14 @@ class KRKS(rks.KohnShamDFT, khf.KRHF):
         # Currently, no grid response is considered.
         rks.KohnShamDFT.__post_init__(self)
 
-    def dump_flags(self, verbose=None):
+    def dump_flags(self, verbose: int | None = None) -> KRKS:
         khf.KRHF.dump_flags(self, verbose)
         rks.KohnShamDFT.dump_flags(self, verbose)
         return self
 
     get_veff = get_veff
 
-    def energy_elec(self, dm_kpts=None, h1e_kpts=None, vhf=None):
+    def energy_elec(self, dm_kpts: ArrayLike | None = None, h1e_kpts: ArrayLike | None = None, vhf: VXC | None = None) -> tuple[float, float]:
         if h1e_kpts is None: h1e_kpts = self.get_hcore(self.cell, self.kpts)
         if dm_kpts is None: dm_kpts = self.make_rdm1()
         if vhf is None or getattr(vhf, 'ecoul', None) is None:

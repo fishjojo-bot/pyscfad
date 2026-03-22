@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import sys
 import h5py
@@ -166,7 +166,7 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
             mo_occ_kpts = self.mo_occ
         return make_rdm1(mo_coeff_kpts, mo_occ_kpts, **kwargs)
 
-    def dump_chk(self, envs):
+    def dump_chk(self, envs: dict[str, Any]) -> KSCF:
         if self.chkfile:
             mol_hf.SCF.dump_chk(self, envs)
             with h5py.File(self.chkfile, 'a') as fh5:

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import sys
 import h5py
@@ -135,7 +135,7 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
                 fh5['scf/kpt'] = stop_grad(self.kpt)
         return self
 
-    def energy_nuc(self):
+    def energy_nuc(self) -> float:
         # NOTE always compute nuclear energy to trace it
         return self.cell.energy_nuc()
 
@@ -174,4 +174,5 @@ def normalize_dm_(mf: SCF, dm: ArrayLike, s1e: ArrayLike | None = None) -> Array
     # NOTE not tracing this function as it is mainly used
     # to generate the initial density matrix
     return stop_trace(pyscf_pbc_hf.normalize_dm_)(mf, dm, s1e=s1e)
+
 

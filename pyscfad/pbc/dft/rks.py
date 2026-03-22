@@ -149,7 +149,7 @@ class RKS(KohnShamDFT, pbchf.RHF):
         # Currently, no grid response is considered.
         KohnShamDFT.__post_init__(self)
 
-    def dump_flags(self, verbose=None):
+    def dump_flags(self, verbose: int | None = None) -> RKS:
         pbchf.RHF.dump_flags(self, verbose)
         KohnShamDFT.dump_flags(self, verbose)
         return self
