@@ -27,6 +27,7 @@ from pyscfad.scf import hf, uhf, chkfile
 
 if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
 
 @wraps(pyscf_rohf.energy_elec)
 def energy_elec(
@@ -212,7 +213,7 @@ def get_occ(mf: ROHF, mo_energy: ArrayLike | _OrbitalEnergy | None = None, mo_co
     return mo_occ
 
 class ROHF(hf.SCF, pyscf_rohf.ROHF):
-    def __init__(self, mol: Any) -> None:
+    def __init__(self, mol: Mole) -> None:
         pyscf_rohf.ROHF.__init__(self, mol)
 
     def eig(self, fock: _FockMatrix | ArrayLike, s: ArrayLike) -> tuple[ArrayLike | _OrbitalEnergy, Array]:
@@ -245,7 +246,7 @@ class ROHF(hf.SCF, pyscf_rohf.ROHF):
 
     def get_veff(
         self,
-        mol: Any | None = None,
+        mol: Mole | None = None,
         dm: ArrayLike | None = None,
         dm_last: ArrayLike = 0,
         vhf_last: ArrayLike = 0,

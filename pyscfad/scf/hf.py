@@ -40,6 +40,7 @@ from pyscfad.tools.linear_solver import gen_gmres
 
 if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
 
 
 def _scf_fixed_point(dm: ArrayLike, mf: SCF, s1e: ArrayLike, h1e: ArrayLike) -> Array:
@@ -302,7 +303,7 @@ def level_shift(s: ArrayLike, d: ArrayLike, f: ArrayLike, factor: float) -> Arra
 
 
 @with_doc(pyscf_hf.dip_moment.__doc__)
-def dip_moment(mol: Any, dm: ArrayLike, unit: str = 'Debye', verbose: int = logger.NOTE, **kwargs) -> Array:
+def dip_moment(mol: Mole, dm: ArrayLike, unit: str = 'Debye', verbose: int = logger.NOTE, **kwargs) -> Array:
     log = logger.new_logger(mol, verbose)
 
     if 'unit_symbol' in kwargs:
@@ -408,12 +409,12 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
     DIIS = SCF_DIIS
     _dynamic_attr = ['mol', '_eri', 'mo_coeff', 'mo_energy']
 
-    def get_hcore(self, mol: Any | None = None, **kwargs) -> Array:
+    def get_hcore(self, mol: Mole | None = None, **kwargs) -> Array:
         return super().get_hcore(mol)
 
     def get_jk(
         self,
-        mol: Any | None = None,
+        mol: Mole | None = None,
         dm: ArrayLike | None = None,
         hermi: int = 1,
         with_j: bool = True,
@@ -437,7 +438,7 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
         vj, vk = dot_eri_dm(_eri, dm, hermi, with_j, with_k)
         return vj, vk
 
-    def get_init_guess(self, mol: Any | None = None, key: str = 'minao', **kwargs) -> Array:
+    def get_init_guess(self, mol: Mole | None = None, key: str = 'minao', **kwargs) -> Array:
         if mol is None:
             mol = self.mol
         dm0 = pyscf_hf.SCF.get_init_guess(self, mol.to_pyscf(), key, **kwargs)
@@ -531,7 +532,7 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
     @with_doc(pyscf_hf.SCF.get_veff.__doc__)
     def get_veff(
         self,
-        mol: Any | None = None,
+        mol: Mole | None = None,
         dm: ArrayLike | None = None,
         dm_last: ArrayLike = 0,
         vhf_last: ArrayLike = 0,
@@ -553,7 +554,7 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
     @with_doc(pyscf_hf.SCF.dip_moment.__doc__)
     def dip_moment(
         self,
-        mol: Any | None = None,
+        mol: Mole | None = None,
         dm: ArrayLike | None = None,
         unit: str = 'Debye',
         verbose: int = logger.NOTE,
@@ -603,7 +604,7 @@ class RHF(SCF, pyscf_hf.RHF):
     @with_doc(pyscf_hf.RHF.get_veff.__doc__)
     def get_veff(
         self,
-        mol: Any | None = None,
+        mol: Mole | None = None,
         dm: ArrayLike | None = None,
         dm_last: ArrayLike = 0,
         vhf_last: ArrayLike = 0,

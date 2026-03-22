@@ -27,6 +27,7 @@ from pyscfad.scf import hf
 
 if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike, Array
+    from pyscfad.gto import Mole
 
 
 @wraps(pyscf_uhf.get_fock)
@@ -139,7 +140,7 @@ def get_grad(mo_coeff: ArrayLike, mo_occ: ArrayLike, fock_ao: ArrayLike) -> Arra
 
 
 class UHF(hf.SCF, pyscf_uhf.UHF):
-    def __init__(self, mol: Any):
+    def __init__(self, mol: Mole):
         pyscf_uhf.UHF.__init__(self, mol)
 
     def eig(self, h: ArrayLike, s: ArrayLike) -> tuple[Array, Array]:
@@ -150,7 +151,7 @@ class UHF(hf.SCF, pyscf_uhf.UHF):
     @wraps(pyscf_uhf.UHF.get_veff)
     def get_veff(
         self,
-        mol: Any | None = None,
+        mol: Mole | None = None,
         dm: ArrayLike | None = None,
         dm_last: ArrayLike = 0,
         vhf_last: ArrayLike = 0,

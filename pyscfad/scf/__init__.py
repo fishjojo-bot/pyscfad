@@ -16,17 +16,20 @@
 Hartree-Fock theory
 """
 from __future__ import annotations
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pyscfad.scf import hf
 from pyscfad.scf import uhf
 from pyscfad.scf import rohf
 
-def RHF(mol: Any, **kwargs: Any) -> hf.RHF:
+if TYPE_CHECKING:
+    from pyscfad.gto import Mole
+
+def RHF(mol: Mole, **kwargs: Any) -> hf.RHF:
     return hf.RHF(mol, **kwargs)
 
-def UHF(mol: Any, **kwargs: Any) -> uhf.UHF:
+def UHF(mol: Mole, **kwargs: Any) -> uhf.UHF:
     return uhf.UHF(mol, **kwargs)
 
-def ROHF(mol: Any, **kwargs: Any) -> rohf.ROHF:
+def ROHF(mol: Mole, **kwargs: Any) -> rohf.ROHF:
     return rohf.ROHF(mol, **kwargs)
