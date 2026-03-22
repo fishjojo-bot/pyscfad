@@ -14,6 +14,8 @@
 """
 Unrestricted Hartree-Fock
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any
 from functools import wraps
 import numpy
 from pyscf.lib import module_method
@@ -23,11 +25,24 @@ from pyscfad import ops
 from pyscfad.lib import logger
 from pyscfad.scf import hf
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
 
 @wraps(pyscf_uhf.get_fock)
-def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
-             diis_start_cycle=None, level_shift_factor=None, damp_factor=None,
-             fock_last=None):
+def get_fock(
+    mf: UHF,
+    h1e: ArrayLike | None = None,
+    s1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+    dm: ArrayLike | None = None,
+    cycle: int = -1,
+    diis: Any | None = None,
+    diis_start_cycle: int | None = None,
+    level_shift_factor: float | ArrayLike | None = None,
+    damp_factor: float | ArrayLike | None = None,
+    fock_last: ArrayLike | None = None,
+) -> Array:
     if h1e is None:
         h1e = mf.get_hcore()
     if vhf is None:
@@ -74,7 +89,12 @@ def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
 
 
 @wraps(pyscf_uhf.energy_elec)
-def energy_elec(mf, dm=None, h1e=None, vhf=None):
+def energy_elec(
+    mf: UHF,
+    dm: ArrayLike | None = None,
+    h1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+) -> tuple[float, float]:
     if dm is None:
         dm = mf.make_rdm1()
     if h1e is None:
@@ -97,7 +117,7 @@ def energy_elec(mf, dm=None, h1e=None, vhf=None):
 
 
 @wraps(pyscf_uhf.make_rdm1)
-def make_rdm1(mo_coeff, mo_occ, **kwargs):
+def make_rdm1(mo_coeff: ArrayLike, mo_occ: ArrayLike, **kwargs) -> Array:
     mo_a = mo_coeff[0]
     mo_b = mo_coeff[1]
 
@@ -107,7 +127,7 @@ def make_rdm1(mo_coeff, mo_occ, **kwargs):
 
 
 @wraps(pyscf_uhf.get_grad)
-def get_grad(mo_coeff, mo_occ, fock_ao):
+def get_grad(mo_coeff: ArrayLike, mo_occ: ArrayLike, fock_ao: ArrayLike) -> Array:
     occidxa = mo_occ[0] > 0
     occidxb = mo_occ[1] > 0
     viridxa = ~occidxa
@@ -119,16 +139,24 @@ def get_grad(mo_coeff, mo_occ, fock_ao):
 
 
 class UHF(hf.SCF, pyscf_uhf.UHF):
-    def __init__(self, mol):
+    def __init__(self, mol: Any):
         pyscf_uhf.UHF.__init__(self, mol)
 
-    def eig(self, h, s):
+    def eig(self, h: ArrayLike, s: ArrayLike) -> tuple[Array, Array]:
         e_a, c_a = self._eigh(h[0], s)
         e_b, c_b = self._eigh(h[1], s)
         return np.array((e_a,e_b)), np.array((c_a,c_b))
 
     @wraps(pyscf_uhf.UHF.get_veff)
-    def get_veff(self, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
+    def get_veff(
+        self,
+        mol: Any | None = None,
+        dm: ArrayLike | None = None,
+        dm_last: ArrayLike = 0,
+        vhf_last: ArrayLike = 0,
+        hermi: int = 1,
+        **kwargs,
+    ) -> Array:
         if mol is None:
             mol = self.mol
         if dm is None:
@@ -145,7 +173,7 @@ class UHF(hf.SCF, pyscf_uhf.UHF):
             vhf += np.asarray(vhf_last)
         return vhf
 
-    def get_occ(self, mo_energy=None, mo_coeff=None):
+    def get_occ(self, mo_energy: ArrayLike | None = None, mo_coeff: ArrayLike | None = None) -> Array:
         if mo_energy is None:
             mo_energy = self.mo_energy
         mo_energy = ops.to_numpy(mo_energy)
@@ -153,13 +181,13 @@ class UHF(hf.SCF, pyscf_uhf.UHF):
             mo_coeff = ops.to_numpy(mo_coeff)
         return pyscf_uhf.UHF.get_occ(self, mo_energy, mo_coeff)
 
-    def get_grad(self, mo_coeff, mo_occ, fock=None):
+    def get_grad(self, mo_coeff: ArrayLike, mo_occ: ArrayLike, fock: ArrayLike | None = None) -> Array:
         if fock is None:
             dm1 = self.make_rdm1(mo_coeff, mo_occ)
             fock = self.get_hcore(self.mol) + self.get_veff(self.mol, dm1)
         return get_grad(mo_coeff, mo_occ, fock)
 
-    def spin_square(self, mo_coeff=None, s=None):
+    def spin_square(self, mo_coeff: ArrayLike | None = None, s: ArrayLike | None = None) -> tuple[float, float]:
         if mo_coeff is None:
             mo_coeff = (self.mo_coeff[0][:,self.mo_occ[0]>0],
                         self.mo_coeff[1][:,self.mo_occ[1]>0])

@@ -14,6 +14,8 @@
 """
 Restricted open-shell Hartree-Fock
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any
 from functools import reduce, wraps
 import numpy
 from pyscf.scf import rohf as pyscf_rohf
@@ -23,8 +25,16 @@ from pyscfad import ops
 from pyscfad.lib import logger
 from pyscfad.scf import hf, uhf, chkfile
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+
 @wraps(pyscf_rohf.energy_elec)
-def energy_elec(mf, dm=None, h1e=None, vhf=None):
+def energy_elec(
+    mf: ROHF,
+    dm: ArrayLike | None = None,
+    h1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+) -> tuple[float, float]:
     if dm is None:
         dm = mf.make_rdm1()
     elif getattr(dm, 'ndim', None) == 2:
@@ -34,28 +44,38 @@ def energy_elec(mf, dm=None, h1e=None, vhf=None):
 class _FockMatrix(pytree.PytreeNode):
     _dynamic_attr = {'fock', 'focka', 'fockb'}
 
-    def __init__(self, fock, focka=None, fockb=None):
+    def __init__(self, fock: ArrayLike, focka: ArrayLike | None = None, fockb: ArrayLike | None = None) -> None:
         self.fock = fock
         self.focka = focka
         self.fockb = fockb
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.fock.__repr__()
 
 class _OrbitalEnergy(pytree.PytreeNode):
     _dynamic_attr = {'mo_energy', 'mo_ea', 'mo_eb'}
 
-    def __init__(self, mo_energy, mo_ea=None, mo_eb=None):
+    def __init__(self, mo_energy: ArrayLike, mo_ea: ArrayLike | None = None, mo_eb: ArrayLike | None = None) -> None:
         self.mo_energy = mo_energy
         self.mo_ea = mo_ea
         self.mo_eb = mo_eb
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.mo_energy.__repr__()
 
-def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
-             diis_start_cycle=None, level_shift_factor=None, damp_factor=None,
-             fock_last=None):
+def get_fock(
+    mf: ROHF,
+    h1e: ArrayLike | None = None,
+    s1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+    dm: ArrayLike | None = None,
+    cycle: int = -1,
+    diis: Any | None = None,
+    diis_start_cycle: int | None = None,
+    level_shift_factor: float | None = None,
+    damp_factor: float | None = None,
+    fock_last: ArrayLike | None = None,
+) -> _FockMatrix:
     if h1e is None: h1e = mf.get_hcore()
     if s1e is None: s1e = mf.get_ovlp()
     if vhf is None: vhf = mf.get_veff(mf.mol, dm)
@@ -87,7 +107,7 @@ def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
         f = hf.level_shift(s1e, dm_tot*.5, f, level_shift_factor)
     return _FockMatrix(f, focka, fockb)
 
-def get_roothaan_fock(focka_fockb, dma_dmb, s):
+def get_roothaan_fock(focka_fockb: tuple[ArrayLike, ArrayLike], dma_dmb: tuple[ArrayLike, ArrayLike], s: ArrayLike) -> Array:
     nao = s.shape[0]
     focka, fockb = focka_fockb
     dma, dmb = dma_dmb
@@ -106,7 +126,7 @@ def get_roothaan_fock(focka_fockb, dma_dmb, s):
     return fock
 
 @wraps(pyscf_rohf.get_grad)
-def get_grad(mo_coeff, mo_occ, fock):
+def get_grad(mo_coeff: ArrayLike, mo_occ: ArrayLike, fock: ArrayLike | _FockMatrix) -> Array:
     occidxa = mo_occ > 0
     occidxb = mo_occ == 2
     viridxa = ~occidxa
@@ -129,7 +149,7 @@ def get_grad(mo_coeff, mo_occ, fock):
     g[uniq_var_b] += fockb[uniq_var_b]
     return g[uniq_var_a | uniq_var_b]
 
-def make_rdm1(mo_coeff, mo_occ, **kwargs):
+def make_rdm1(mo_coeff: ArrayLike, mo_occ: ArrayLike, **kwargs) -> Array:
     if getattr(mo_occ, 'ndim', None) == 1:
         mo_occa = mo_occ > 0
         mo_occb = mo_occ == 2
@@ -139,7 +159,7 @@ def make_rdm1(mo_coeff, mo_occ, **kwargs):
     dm_b = np.dot(mo_coeff*mo_occb, mo_coeff.conj().T)
     return np.array((dm_a, dm_b))
 
-def get_occ(mf, mo_energy=None, mo_coeff=None):
+def get_occ(mf: ROHF, mo_energy: ArrayLike | _OrbitalEnergy | None = None, mo_coeff: ArrayLike | None = None) -> Array:
     from pyscf.scf.rohf import _fill_rohf_occ
     if mo_energy is None: mo_energy = mf.mo_energy
     if getattr(mo_energy, 'mo_ea', None) is not None:
@@ -192,10 +212,10 @@ def get_occ(mf, mo_energy=None, mo_coeff=None):
     return mo_occ
 
 class ROHF(hf.SCF, pyscf_rohf.ROHF):
-    def __init__(self, mol):
+    def __init__(self, mol: Any) -> None:
         pyscf_rohf.ROHF.__init__(self, mol)
 
-    def eig(self, fock, s):
+    def eig(self, fock: _FockMatrix | ArrayLike, s: ArrayLike) -> tuple[ArrayLike | _OrbitalEnergy, Array]:
         focka = getattr(fock, 'focka', None)
         fockb = getattr(fock, 'fockb', None)
         fockab = getattr(fock, 'fock', fock)
@@ -209,13 +229,13 @@ class ROHF(hf.SCF, pyscf_rohf.ROHF):
             e = _OrbitalEnergy(e, mo_ea, mo_eb)
         return e, c
 
-    def get_grad(self, mo_coeff, mo_occ, fock=None):
+    def get_grad(self, mo_coeff: ArrayLike, mo_occ: ArrayLike, fock: ArrayLike | _FockMatrix | None = None) -> Array:
         if fock is None:
             dm1 = self.make_rdm1(mo_coeff, mo_occ)
             fock = self.get_hcore(self.mol) + self.get_veff(self.mol, dm1)
         return get_grad(mo_coeff, mo_occ, fock)
 
-    def make_rdm1(self, mo_coeff=None, mo_occ=None, **kwargs):
+    def make_rdm1(self, mo_coeff: ArrayLike | None = None, mo_occ: ArrayLike | None = None, **kwargs) -> Array:
         if mo_coeff is None: mo_coeff = self.mo_coeff
         if mo_occ is None: mo_occ = self.mo_occ
         if self.mol.spin < 0:
@@ -223,7 +243,15 @@ class ROHF(hf.SCF, pyscf_rohf.ROHF):
             mo_occ = (mo_occ == 2), (mo_occ > 0)
         return make_rdm1(mo_coeff, mo_occ, **kwargs)
 
-    def get_veff(self, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
+    def get_veff(
+        self,
+        mol: Any | None = None,
+        dm: ArrayLike | None = None,
+        dm_last: ArrayLike = 0,
+        vhf_last: ArrayLike = 0,
+        hermi: int = 1,
+        **kwargs,
+    ) -> Array:
         if mol is None: mol = self.mol
         if dm is None: dm = self.make_rdm1()
         if getattr(dm, 'ndim', None) == 2:
@@ -239,7 +267,7 @@ class ROHF(hf.SCF, pyscf_rohf.ROHF):
             vhf += np.asarray(vhf_last)
         return vhf
 
-    def dump_chk(self, envs):
+    def dump_chk(self, envs: dict[str, Any]) -> ROHF:
         if self.chkfile:
             mo_energy = getattr(envs['mo_energy'], 'mo_energy',
                                 envs['mo_energy'])

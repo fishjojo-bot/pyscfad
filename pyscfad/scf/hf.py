@@ -14,6 +14,8 @@
 """
 Restricted Hartree-Fock
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any
 from functools import partial
 import numpy
 
@@ -36,8 +38,11 @@ from pyscfad.scf.diis import SCF_DIIS
 from pyscfad.scipy.linalg import eigh
 from pyscfad.tools.linear_solver import gen_gmres
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
 
-def _scf_fixed_point(dm, mf, s1e, h1e):
+
+def _scf_fixed_point(dm: ArrayLike, mf: SCF, s1e: ArrayLike, h1e: ArrayLike) -> Array:
     vhf = mf.get_veff(mf.mol, dm, s1e=s1e)
     fock = mf.get_fock(h1e, s1e, vhf, dm)
     mo_energy, mo_coeff = mf.eig(fock, s1e)
@@ -95,8 +100,16 @@ def _scf(dm, mf, s1e, h1e, *,
 
 
 @with_doc(pyscf_hf.kernel.__doc__)
-def kernel(mf, conv_tol=1e-10, conv_tol_grad=None,
-           dump_chk=True, dm0=None, callback=None, conv_check=True, **kwargs):
+def kernel(
+    mf: SCF,
+    conv_tol: float = 1e-10,
+    conv_tol_grad: float | None = None,
+    dump_chk: bool = True,
+    dm0: ArrayLike | None = None,
+    callback: Any | None = None,
+    conv_check: bool = True,
+    **kwargs,
+) -> tuple[bool, float, ArrayLike, ArrayLike, ArrayLike]:
     log = logger.new_logger(mf)
     cput0 = log.get_t0()
     if conv_tol_grad is None:
@@ -236,7 +249,13 @@ def _dot_eri_dm_s1(eri, dm, with_j, with_k):
     return vj, vk
 
 
-def dot_eri_dm(eri, dm, hermi=0, with_j=True, with_k=True):
+def dot_eri_dm(
+    eri: ArrayLike,
+    dm: ArrayLike,
+    hermi: int = 0,
+    with_j: bool = True,
+    with_k: bool = True,
+) -> tuple[ArrayLike | None, ArrayLike | None]:
     dm = np.asarray(dm)
     nao = dm.shape[-1]
     if np.iscomplexobj(eri) or eri.size == nao**4:
@@ -249,7 +268,12 @@ def dot_eri_dm(eri, dm, hermi=0, with_j=True, with_k=True):
 
 
 @with_doc(pyscf_hf.energy_elec.__doc__)
-def energy_elec(mf, dm=None, h1e=None, vhf=None):
+def energy_elec(
+    mf: SCF,
+    dm: ArrayLike | None = None,
+    h1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+) -> tuple[float, float]:
     if dm is None:
         dm = mf.make_rdm1()
     if h1e is None:
@@ -265,20 +289,20 @@ def energy_elec(mf, dm=None, h1e=None, vhf=None):
 
 
 @with_doc(pyscf_hf.make_rdm1.__doc__)
-def make_rdm1(mo_coeff, mo_occ, **kwargs):
+def make_rdm1(mo_coeff: ArrayLike, mo_occ: ArrayLike, **kwargs) -> Array:
     mocc = mo_coeff[:,mo_occ>0]
     dm = (mocc*mo_occ[mo_occ>0]) @ mocc.conj().T
     return dm
 
 
 @with_doc(pyscf_hf.level_shift.__doc__)
-def level_shift(s, d, f, factor):
+def level_shift(s: ArrayLike, d: ArrayLike, f: ArrayLike, factor: float) -> Array:
     dm_vir = s - s @ d @ s
     return f + dm_vir * factor
 
 
 @with_doc(pyscf_hf.dip_moment.__doc__)
-def dip_moment(mol, dm, unit='Debye', verbose=logger.NOTE, **kwargs):
+def dip_moment(mol: Any, dm: ArrayLike, unit: str = 'Debye', verbose: int = logger.NOTE, **kwargs) -> Array:
     log = logger.new_logger(mol, verbose)
 
     if 'unit_symbol' in kwargs:
@@ -309,9 +333,19 @@ def dip_moment(mol, dm, unit='Debye', verbose=logger.NOTE, **kwargs):
 
 
 @with_doc(pyscf_hf.get_fock.__doc__)
-def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
-             diis_start_cycle=None, level_shift_factor=None, damp_factor=None,
-             fock_last=None):
+def get_fock(
+    mf: SCF,
+    h1e: ArrayLike | None = None,
+    s1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+    dm: ArrayLike | None = None,
+    cycle: int = -1,
+    diis: Any | None = None,
+    diis_start_cycle: int | None = None,
+    level_shift_factor: float | None = None,
+    damp_factor: float | None = None,
+    fock_last: ArrayLike | None = None,
+) -> Array:
     if h1e is None:
         h1e = mf.get_hcore()
     if vhf is None:
@@ -344,7 +378,12 @@ def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
     return f
 
 
-def energy_tot(mf, dm=None, h1e=None, vhf=None):
+def energy_tot(
+    mf: SCF,
+    dm: ArrayLike | None = None,
+    h1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+) -> float:
     nuc = mf.energy_nuc()
     mf.scf_summary['nuc'] = nuc.real
 
@@ -369,11 +408,18 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
     DIIS = SCF_DIIS
     _dynamic_attr = ['mol', '_eri', 'mo_coeff', 'mo_energy']
 
-    def get_hcore(self, mol=None, **kwargs):
+    def get_hcore(self, mol: Any | None = None, **kwargs) -> Array:
         return super().get_hcore(mol)
 
-    def get_jk(self, mol=None, dm=None, hermi=1, with_j=True, with_k=True,
-               omega=None):
+    def get_jk(
+        self,
+        mol: Any | None = None,
+        dm: ArrayLike | None = None,
+        hermi: int = 1,
+        with_j: bool = True,
+        with_k: bool = True,
+        omega: float | None = None,
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
         if mol is None:
             mol = self.mol
         if dm is None:
@@ -391,14 +437,14 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
         vj, vk = dot_eri_dm(_eri, dm, hermi, with_j, with_k)
         return vj, vk
 
-    def get_init_guess(self, mol=None, key='minao', **kwargs):
+    def get_init_guess(self, mol: Any | None = None, key: str = 'minao', **kwargs) -> Array:
         if mol is None:
             mol = self.mol
         dm0 = pyscf_hf.SCF.get_init_guess(self, mol.to_pyscf(), key, **kwargs)
         dm0 = np.asarray(dm0) #remove tags
         return dm0
 
-    def scf(self, dm0=None, **kwargs):
+    def scf(self, dm0: ArrayLike | None = None, **kwargs) -> float:
         self.dump_flags()
         self.build(self.mol)
 
@@ -421,7 +467,7 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
     def _eigh(self, h, s):
         return eigh(h, s)
 
-    def energy_grad(self, dm0=None, mode='rev'):
+    def energy_grad(self, dm0: ArrayLike | None = None, mode: str = 'rev') -> Any:
         """Computing energy gradients w.r.t AO parameters.
 
         In principle, MO response is not needed, and it is sufficient to
@@ -478,12 +524,20 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
         else:
             return jac.mol
 
-    def density_fit(self, auxbasis=None, with_df=None, only_dfj=False):
+    def density_fit(self, auxbasis: Any | None = None, with_df: Any | None = None, only_dfj: bool = False) -> Any:
         from pyscfad.df import df_jk # pylint: disable=cyclic-import
         return df_jk.density_fit(self, auxbasis, with_df, only_dfj)
 
     @with_doc(pyscf_hf.SCF.get_veff.__doc__)
-    def get_veff(self, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
+    def get_veff(
+        self,
+        mol: Any | None = None,
+        dm: ArrayLike | None = None,
+        dm_last: ArrayLike = 0,
+        vhf_last: ArrayLike = 0,
+        hermi: int = 1,
+        **kwargs,
+    ) -> Array:
         if mol is None:
             mol = self.mol
         if dm is None:
@@ -497,15 +551,21 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
             return vj - vk * .5
 
     @with_doc(pyscf_hf.SCF.dip_moment.__doc__)
-    def dip_moment(self, mol=None, dm=None, unit='Debye', verbose=logger.NOTE,
-                   **kwargs):
+    def dip_moment(
+        self,
+        mol: Any | None = None,
+        dm: ArrayLike | None = None,
+        unit: str = 'Debye',
+        verbose: int = logger.NOTE,
+        **kwargs,
+    ) -> Array:
         if mol is None:
             mol = self.mol
         if dm is None:
             dm =self.make_rdm1()
         return dip_moment(mol, dm, unit, verbose=verbose, **kwargs)
 
-    def dump_chk(self, envs):
+    def dump_chk(self, envs: dict[str, Any]) -> SCF:
         if self.chkfile:
             chkfile.dump_scf(self.mol, self.chkfile,
                              envs['e_tot'], envs['mo_energy'],
@@ -513,14 +573,14 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
                              overwrite_mol=False)
         return self
 
-    def energy_nuc(self):
+    def energy_nuc(self) -> float:
         # recompute nuclear energy to trace it
         return self.mol.energy_nuc()
 
-    def check_sanity(self):
+    def check_sanity(self) -> None:
         pass
 
-    def get_occ(self, mo_energy=None, mo_coeff=None):
+    def get_occ(self, mo_energy: ArrayLike | None = None, mo_coeff: ArrayLike | None = None) -> Array:
         if mo_energy is None:
             mo_energy = self.mo_energy
         return pyscf_hf.SCF.get_occ(self, ops.to_numpy(mo_energy))
@@ -533,7 +593,7 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
 
 
 class RHF(SCF, pyscf_hf.RHF):
-    def check_sanity(self):
+    def check_sanity(self) -> Any:
         mol = self.mol
         if mol.nelectron != 1 and mol.spin != 0:
             logger.warn(self, 'Invalid number of electrons %d for RHF method.',
@@ -541,7 +601,15 @@ class RHF(SCF, pyscf_hf.RHF):
         return SCF.check_sanity(self)
 
     @with_doc(pyscf_hf.RHF.get_veff.__doc__)
-    def get_veff(self, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1, **kwargs):
+    def get_veff(
+        self,
+        mol: Any | None = None,
+        dm: ArrayLike | None = None,
+        dm_last: ArrayLike = 0,
+        vhf_last: ArrayLike = 0,
+        hermi: int = 1,
+        **kwargs,
+    ) -> Array:
         if mol is None:
             mol = self.mol
         if dm is None:

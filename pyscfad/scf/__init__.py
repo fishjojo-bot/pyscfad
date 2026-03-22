@@ -15,15 +15,18 @@
 """
 Hartree-Fock theory
 """
+from __future__ import annotations
+from typing import Any
+
 from pyscfad.scf import hf
 from pyscfad.scf import uhf
 from pyscfad.scf import rohf
 
-def RHF(mol, **kwargs):
+def RHF(mol: Any, **kwargs: Any) -> hf.RHF:
     return hf.RHF(mol, **kwargs)
 
-def UHF(mol, **kwargs):
+def UHF(mol: Any, **kwargs: Any) -> uhf.UHF:
     return uhf.UHF(mol, **kwargs)
 
-def ROHF(mol, **kwargs):
+def ROHF(mol: Any, **kwargs: Any) -> rohf.ROHF:
     return rohf.ROHF(mol, **kwargs)
