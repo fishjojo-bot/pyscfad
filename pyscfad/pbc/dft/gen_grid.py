@@ -12,12 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import numpy
 from pyscf.pbc.gto import Cell as pyscf_Cell
 from pyscf.pbc.dft import gen_grid as pyscf_gen_grid
 from pyscfad import numpy as np
 from pyscfad.ops import stop_grad
 from pyscfad.pbc.gto.cell import get_uniform_grids
+
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
 
 class UniformGrids(pyscf_gen_grid.UniformGrids):
     @property
@@ -36,8 +43,8 @@ class UniformGrids(pyscf_gen_grid.UniformGrids):
             weights = np.full((ngrids,), self.cell.vol / ngrids)
             return weights
 
-    def make_mask(self, cell=None, coords=None, relativity=0, shls_slice=None,
-                  verbose=None):
+    def make_mask(self, cell: Cell | None = None, coords: ArrayLike | None = None, relativity: int = 0, shls_slice=None,
+                  verbose=None) -> Array:
         if cell is None:
             cell = self.cell
         if coords is None:

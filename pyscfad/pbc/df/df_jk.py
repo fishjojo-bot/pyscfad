@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import numpy
 from pyscf.pbc.lib.kpts_helper import is_zero, member
 from pyscfad import numpy as np
@@ -19,7 +22,11 @@ from pyscfad import ops
 from pyscfad.ops import vmap
 from pyscfad.pbc import tools
 
-def _ewald_exxdiv_for_G0(cell, kpts, dms, vk, kpts_band=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
+def _ewald_exxdiv_for_G0(cell: Cell, kpts: ArrayLike, dms: ArrayLike, vk: ArrayLike, kpts_band: ArrayLike | None = None) -> Array:
     s = cell.pbc_intor('int1e_ovlp', hermi=1, kpts=kpts)
     s = np.asarray(s)
     madelung = tools.pbc.madelung(cell, kpts)

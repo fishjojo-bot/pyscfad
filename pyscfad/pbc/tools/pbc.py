@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from functools import wraps
 import warnings
 import numpy
@@ -21,8 +24,12 @@ from pyscfad import ops
 from pyscfad.ops import stop_trace, stop_grad
 from pyscfad.lib import logger, cartesian_prod
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
 @wraps(pyscf_pbctools.fft)
-def fft(f, mesh):
+def fft(f: ArrayLike, mesh: ArrayLike) -> Array:
     if f.size == 0:
         return numpy.zeros_like(f)
 
@@ -36,7 +43,7 @@ def fft(f, mesh):
         return g3d.reshape(-1, ngrids)
 
 @wraps(pyscf_pbctools.ifft)
-def ifft(g, mesh):
+def ifft(g: ArrayLike, mesh: ArrayLike) -> Array:
     if g.size == 0:
         return numpy.zeros_like(g)
 
@@ -50,14 +57,14 @@ def ifft(g, mesh):
         return f3d.reshape(-1, ngrids)
 
 @wraps(pyscf_pbctools.fftk)
-def fftk(f, mesh, expmikr):
+def fftk(f: ArrayLike, mesh: ArrayLike, expmikr: ArrayLike) -> Array:
     return fft(f*expmikr, mesh)
 
 @wraps(pyscf_pbctools.ifftk)
-def ifftk(g, mesh, expikr):
+def ifftk(g: ArrayLike, mesh: ArrayLike, expikr: ArrayLike) -> Array:
     return ifft(g, mesh) * expikr
 
-def get_nimgs(cell, rcut=None, dimension=None):
+def get_nimgs(cell: Cell, rcut: float | None = None, dimension: int | None = None) -> Array:
     """Get the number of periodic images given the cutoff radius.
     """
     if dimension is None:
@@ -88,7 +95,7 @@ def get_nimgs(cell, rcut=None, dimension=None):
     bounds = np.ceil(bounds).astype(int)
     return bounds
 
-def nimgs_to_lattice_Ls(cell, nimgs=None, dimension=None):
+def nimgs_to_lattice_Ls(cell: Cell, nimgs: int | ArrayLike | None = None, dimension: int | None = None) -> Array:
     """Get the lattice translation vectors given the number of
     periodic images.
 
@@ -125,7 +132,7 @@ def nimgs_to_lattice_Ls(cell, nimgs=None, dimension=None):
     Ls = np.dot(Ts[:,:dimension], a[:dimension])
     return Ls
 
-def get_lattice_Ls(cell, nimgs=None, rcut=None, dimension=None, discard=True):
+def get_lattice_Ls(cell: Cell, nimgs: int | ArrayLike | None = None, rcut: float | None = None, dimension: int | None = None, discard: bool = True) -> Array:
     """Get the lattice translation vectors for lattice sum.
 
     Same as pyscf :func:`~pyscf.pbc.tools.get_lattice_Ls`,
@@ -164,7 +171,7 @@ def get_lattice_Ls(cell, nimgs=None, rcut=None, dimension=None, discard=True):
     return Ls
 
 @wraps(pyscf_pbctools.get_coulG)
-def get_coulG(cell, k=numpy.zeros(3), exx=False, mf=None, mesh=None, Gv=None,
+def get_coulG(cell: Cell, k: ArrayLike = numpy.zeros(3), exx: bool | str = False, mf=None, mesh: ArrayLike | None = None, Gv: ArrayLike | None = None,
               wrap_around=True, omega=None, **kwargs):
     exxdiv = exx
     if isinstance(exx, str):
@@ -292,7 +299,7 @@ def cutoff_to_mesh(a, cutoff):
     mesh = np.ceil(Gmax).astype(int) * 2 + 1
     return stop_grad(mesh)
 
-def madelung(cell, kpts, omega=None):
+def madelung(cell: Cell, kpts: ArrayLike, omega: float | None = None) -> float:
     Nk = get_monkhorst_pack_size(cell, kpts)
     ecell = cell.copy()
     ecell.coords = numpy.array([[0., 0., 0.],])

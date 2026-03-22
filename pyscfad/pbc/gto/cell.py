@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import warnings
 import numpy
 from jax.scipy.special import erf, erfc
@@ -35,12 +38,16 @@ from pyscfad.pbc.gto import _pbcintor
 from pyscfad.pbc.gto.eval_gto import eval_gto as pbc_eval_gto
 from pyscfad.pbc import tools as pbctools
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
 @with_doc(pyscf_cell.get_Gv.__doc__)
-def get_Gv(cell, mesh=None):
+def get_Gv(cell: Cell, mesh: ArrayLike | None = None) -> Array:
     return get_Gv_weights(cell, mesh)[0]
 
 @with_doc(pyscf_cell.get_Gv_weights.__doc__)
-def get_Gv_weights(cell, mesh=None):
+def get_Gv_weights(cell: Cell, mesh: ArrayLike | None = None) -> tuple[Array, tuple[ArrayLike, ArrayLike, ArrayLike], float]:
     if mesh is None:
         mesh = cell.mesh
 
@@ -64,7 +71,7 @@ def get_Gv_weights(cell, mesh=None):
     return Gv, Gvbase, weights
 
 @with_doc(pyscf_cell.get_SI.__doc__)
-def get_SI(cell, Gv=None, mesh=None, atmlst=None):
+def get_SI(cell: Cell, Gv: ArrayLike | None = None, mesh: ArrayLike | None = None, atmlst: ArrayLike | None = None) -> Array:
     coords = cell.atom_coords()
     if atmlst is not None:
         coords = coords[numpy.asarray(atmlst)]
@@ -85,7 +92,7 @@ def get_SI(cell, Gv=None, mesh=None, atmlst=None):
     return SI
 
 @with_doc(pyscf_cell.get_uniform_grids.__doc__)
-def get_uniform_grids(cell, mesh=None, wrap_around=True):
+def get_uniform_grids(cell: Cell, mesh: ArrayLike | None = None, wrap_around: bool = True) -> Array:
     if mesh is None:
         mesh = cell.mesh
 
@@ -102,7 +109,7 @@ def get_uniform_grids(cell, mesh=None, wrap_around=True):
 
 gen_uniform_grids = get_uniform_grids
 
-def shift_bas_center(cell0, r):
+def shift_bas_center(cell0: Cell, r: ArrayLike) -> Cell:
     cell = cell0.copy()
     cell.coords = cell0.atom_coords() + r[None,:]
 
@@ -111,7 +118,7 @@ def shift_bas_center(cell0, r):
     numpy.put(cell._env, idx, stop_grad(cell.coords).flatten())
     return cell
 
-def intor_cross(intor, cell1, cell2, comp=None, hermi=0, kpts=None, kpt=None,
+def intor_cross(intor: str, cell1: Cell, cell2: Cell, comp: int | None = None, hermi: int = 0, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
                 shls_slice=None, **kwargs):
     intor, comp = _get_intor_and_comp(cell1._add_suffix(intor), comp)
 
@@ -142,7 +149,7 @@ def intor_cross(intor, cell1, cell2, comp=None, hermi=0, kpts=None, kpt=None,
         out = out[0]
     return out
 
-def pbc_intor(cell, intor, comp=None, hermi=0, kpts=None, kpt=None,
+def pbc_intor(cell: Cell, intor: str, comp: int | None = None, hermi: int = 0, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
               shls_slice=None, **kwargs):
     if kwargs:
         warnings.warn(f'Keyword arguments {list(kwargs.keys())} are ignored')
@@ -156,7 +163,7 @@ def pbc_intor(cell, intor, comp=None, hermi=0, kpts=None, kpt=None,
     return res
 
 @with_doc(pyscf_cell.get_ewald_params.__doc__)
-def get_ewald_params(cell, precision=None, mesh=None):
+def get_ewald_params(cell: Cell, precision: float | None = None, mesh: ArrayLike | None = None) -> tuple[float, float]:
     if cell.natm == 0:
         return 0, 0
 
@@ -179,7 +186,7 @@ def get_ewald_params(cell, precision=None, mesh=None):
     return ew_eta, ew_cut
 
 @with_doc(pyscf_cell.ewald.__doc__)
-def ewald(cell, ew_eta=None, ew_cut=None):
+def ewald(cell: Cell, ew_eta: float | None = None, ew_cut: float | None = None) -> float:
     if cell.a is None:
         return mole.energy_nuc(cell)
 
@@ -296,7 +303,7 @@ def _estimate_rcut(alpha, l, c, precision=1e-8):
     r0 = (numpy.log(fac * (r0*.5+a1)**(2*l)) / theta)**.5
     return r0
 
-def bas_rcut(cell, bas_id, precision=None):
+def bas_rcut(cell: Cell, bas_id: int, precision: float | None = None) -> float:
     """Same as :func:`pyscf.pbc.gto.cell.bas_rcut`,
     but gives slightly different cutoff radius.
     """
@@ -334,7 +341,7 @@ def _estimate_rcut_impl_cpu(atm, bas, env, precision):
     ls = bas[:, ANG_OF]
     return _estimate_rcut(es, ls, cs, precision).max()
 
-def estimate_rcut(cell, precision=None):
+def estimate_rcut(cell: Cell, precision: float | None = None) -> float:
     """Same as :func:`pyscf.pbc.gto.cell.estimate_rcut`,
     but gives slightly different cutoff radius.
     """

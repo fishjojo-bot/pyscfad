@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import numpy
 from jax import numpy as np
 from pyscf import __config__
@@ -21,7 +24,11 @@ from pyscf.pbc.df import fft as pyscf_fft
 from pyscfad.pbc import tools
 from pyscfad.pbc.lib.kpts_helper import gamma_point
 
-def get_pp(mydf, kpts=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
+def get_pp(mydf: FFTDF, kpts: ArrayLike | None = None) -> Array:
     from pyscf import gto
     from pyscfad.pbc.gto import pseudo
     from pyscfad.gto.mole import Mole
