@@ -125,5 +125,3 @@ def with_backend(backend_name: str) -> Iterator[None]:
             yield
         finally:
             _current_backend = previous_backend
-
-evious_backend
