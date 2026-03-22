@@ -12,18 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any, Callable
+
 import torch
 
-def to_numpy(x):
+def to_numpy(x: Any) -> Any:
     return x.numpy(force=True)
 
-def stop_gradient(x):
+def stop_gradient(x: Any) -> Any:
     return x.detach()
 
-def vmap(fun, in_axes=0, out_axes=0, chunk_size=None, signature=None):
+def vmap(fun: Callable[..., Any], in_axes: Any = 0, out_axes: Any = 0, chunk_size: int | None = None, signature: str | None = None) -> Any:
     return torch.vmap(fun, in_dims=in_axes, out_dims=out_axes, chunk_size=chunk_size)
 
-def jit(obj, **kwargs):
+def jit(obj: Any, **kwargs) -> Any:
     # TODO make jit work
     #return torch.jit.script(obj, **kwargs)
     return obj
