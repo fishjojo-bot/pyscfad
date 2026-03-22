@@ -172,7 +172,7 @@ def get_lattice_Ls(cell: Cell, nimgs: int | ArrayLike | None = None, rcut: float
 
 @wraps(pyscf_pbctools.get_coulG)
 def get_coulG(cell: Cell, k: ArrayLike = numpy.zeros(3), exx: bool | str = False, mf=None, mesh: ArrayLike | None = None, Gv: ArrayLike | None = None,
-              wrap_around=True, omega=None, **kwargs):
+              wrap_around: bool = True, omega: float | None = None, **kwargs) -> Array:
     exxdiv = exx
     if isinstance(exx, str):
         exxdiv = exx

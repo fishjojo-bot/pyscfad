@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any
+
 import sys
 import numpy
 from pyscf.pbc.dft import numint as pyscf_numint
@@ -22,8 +25,12 @@ from pyscfad.ops import stop_grad
 from pyscfad.dft import numint
 from pyscfad.dft.numint import eval_mat, _contract_rho
 
-def nr_rks(ni, cell, grids, xc_code, dms, spin=0, relativity=0, hermi=0,
-           kpts=None, kpts_band=None, max_memory=2000, verbose=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
+def nr_rks(ni: Any, cell: Cell, grids: Any, xc_code: str, dms: ArrayLike, spin: int = 0, relativity: int = 0, hermi: int = 0,
+           kpts: ArrayLike | None = None, kpts_band: ArrayLike | None = None, max_memory: int = 2000, verbose=None) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
     if kpts is None:
         kpts = numpy.zeros((1,3))
 
@@ -93,8 +100,8 @@ def eval_ao(cell, coords, kpt=numpy.zeros(3), deriv=0, relativity=0, shls_slice=
                            relativity, shls_slice, non0tab, out, verbose)
     return ao_kpts[0]
 
-def eval_ao_kpts(cell, coords, kpts=None, deriv=0, relativity=0,
-                 shls_slice=None, non0tab=None, out=None, verbose=None, **kwargs):
+def eval_ao_kpts(cell: Cell, coords: ArrayLike, kpts: ArrayLike | None = None, deriv: int = 0, relativity: int = 0,
+                 shls_slice=None, non0tab=None, out=None, verbose=None, **kwargs) -> Array:
     if kpts is None:
         if 'kpt' in kwargs:
             sys.stderr.write('WARN: KNumInt.eval_ao function finds keyword '
@@ -200,8 +207,8 @@ class NumInt(numint.NumInt):
         return nr_rks(self, cell, grids, xc_code, dms,
                       0, 0, hermi, kpt, kpts_band, max_memory, verbose)
 
-    def eval_ao(self, cell, coords, kpt=numpy.zeros(3), deriv=0, relativity=0,
-                shls_slice=None, non0tab=None, out=None, verbose=None):
+    def eval_ao(self, cell: Cell, coords: ArrayLike, kpt: ArrayLike = numpy.zeros(3), deriv: int = 0, relativity: int = 0,
+                shls_slice=None, non0tab=None, out=None, verbose=None) -> Array:
         return eval_ao(cell, coords, kpt, deriv, relativity, shls_slice,
                        non0tab, out, verbose)
 

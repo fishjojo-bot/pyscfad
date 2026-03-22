@@ -150,7 +150,7 @@ def intor_cross(intor: str, cell1: Cell, cell2: Cell, comp: int | None = None, h
     return out
 
 def pbc_intor(cell: Cell, intor: str, comp: int | None = None, hermi: int = 0, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
-              shls_slice=None, **kwargs):
+              shls_slice=None, **kwargs) -> Array:
     if kwargs:
         warnings.warn(f'Keyword arguments {list(kwargs.keys())} are ignored')
 
