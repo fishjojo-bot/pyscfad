@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-from typing import Any, Callable
-
 import math
 
-def stop_gradient(x: Any) -> Any:
+def stop_gradient(x):
     return x
 
 class custom_jvp:
     """Fake ``custom_jvp`` that does nothing.
     """
-    def __init__(self, fun: Callable[..., Any], *args, **kwargs):
+    def __init__(self, fun, *args, **kwargs):
         self.fun = fun
         self.jvp = None
 
@@ -61,20 +58,20 @@ class _Indexable(object):
 
 index = _Indexable()
 
-def index_update(x: Any, idx: Any, y: Any) -> Any:
+def index_update(x, idx, y):
     x[idx] = y
     return x
 
-def index_add(x: Any, idx: Any, y: Any) -> Any:
+def index_add(x, idx, y):
     x[idx] += y
     return x
 
-def index_mul(x: Any, idx: Any, y: Any) -> Any:
+def index_mul(x, idx, y):
     x[idx] *= y
     return x
 
 class ShapeDtypeStruct:
-    def __init__(self, shape: tuple[int, ...], dtype: Any, **kwargs):
+    def __init__(self, shape, dtype, **kwargs):
         self.shape = shape
         self.dtype = dtype
 

@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-from typing import Any
-
 import cupy
 
-def is_array(x: Any) -> bool:
+def is_array(x):
     return isinstance(x, cupy.ndarray)
 
-def to_numpy(x: Any) -> Any:
+def to_numpy(x):
     return cupy.asnumpy(x)

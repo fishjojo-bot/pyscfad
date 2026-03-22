@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-from typing import Any
-
 from types import ModuleType
 try:
     import jax
@@ -54,7 +51,7 @@ from .pytree import (
 )
 
 class JaxBackend:
-    def __init__(self, package: Any):
+    def __init__(self, package):
         self._pkg = package
         self._cache = {}
 
@@ -92,6 +89,4 @@ backend._cache['index_mul'] = index_mul
 
 backend._cache['class_as_pytree_node'] = class_as_pytree_node
 backend._cache['PytreeNode'] = PytreeNode
-
-eNode
 

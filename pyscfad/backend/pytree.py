@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-from typing import Any
-
 from .config import get_backend
 
 __all__ = [
@@ -22,9 +19,9 @@ __all__ = [
     'class_as_pytree_node',
 ]
 
-def __getattr__(name: str) -> Any:
+def __getattr__(name):
     return getattr(get_backend(), name)
 
-def class_as_pytree_node(cls: Any, leaf_names: list[str] | tuple[str, ...], num_args: int = 0, exclude_aux_name: tuple[str, ...] = ()) -> Any:
+def class_as_pytree_node(cls, leaf_names, num_args=0, exclude_aux_name=()):
     return get_backend().class_as_pytree_node(cls, leaf_names, num_args=num_args,
                                               exclude_aux_name=exclude_aux_name)

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-from typing import Any
-
 from types import ModuleType
 try:
     import torch as torch
@@ -49,7 +46,7 @@ class TorchBackend:
         self._pkg = package
         self._cache = {}
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name):
         if name in self._cache:
             return self._cache[name]
 

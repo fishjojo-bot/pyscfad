@@ -15,9 +15,6 @@
 """
 Custom jax.lax.linalg functions
 """
-from __future__ import annotations
-from typing import Any
-
 from functools import partial
 import numpy as np
 

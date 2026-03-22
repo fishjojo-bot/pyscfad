@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-from typing import Any
-
 from jax._src import api
 from jax._src import lax
 from jax._src import numpy as jnp
@@ -32,8 +29,8 @@ from jax._src.scipy.sparse.linalg import (
   _gmres_solve,
 )
 
-def gmres(A: Any, b: Any, x0: Any = None, *, tol: float = 1e-5, atol: float = 1e-5, restart: int = 20, maxiter: int | None = None,
-          M: Any = None, solve_method: str = 'batched') -> tuple[Any, Any]:
+def gmres(A, b, x0=None, *, tol=1e-5, atol=1e-5, restart=20, maxiter=None,
+          M=None, solve_method='batched'):
   """A workaround for https://github.com/jax-ml/jax/issues/33872.
   Currently, ``atol`` and ``ptol`` can not depend on ``b``,
   so they are set as constants.
