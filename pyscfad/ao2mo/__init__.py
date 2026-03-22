@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import Any
+
 from pyscfad.ao2mo import incore
 from pyscfad.ao2mo.addons import load, restore
 
-def general(eri_or_mol, mo_coeffs, *args,
+def general(eri_or_mol: Any, mo_coeffs: Any, *args,
             erifile=None, dataname='eri_mo', intor='int2e',
-            **kwargs):
+            **kwargs) -> Any:
     if hasattr(eri_or_mol, 'shape'):
         return incore.general(eri_or_mol, mo_coeffs, *args, **kwargs)
     else:
