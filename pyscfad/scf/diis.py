@@ -29,11 +29,23 @@ if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike, Array
 
 class CDIIS(lib.diis.DIIS, pyscf_cdiis.CDIIS):
-    def __init__(self, mf: Any = None, filename: str | None = None, Corth: ArrayLike | None = None) -> None:
+    def __init__(
+        self,
+        mf: Any = None,
+        filename: str | None = None,
+        Corth: ArrayLike | None = None,
+    ) -> None:
         pyscf_cdiis.CDIIS.__init__(self, mf=mf, filename=filename, Corth=Corth)
         self.incore = True
 
-    def update(self, s: ArrayLike, d: ArrayLike, f: ArrayLike, *args: Any, **kwargs: Any) -> Array:
+    def update(
+        self,
+        s: ArrayLike,
+        d: ArrayLike,
+        f: ArrayLike,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Array:
         errvec = get_err_vec(s, d, f, self.Corth)
         # no need to trace error vectors
         errvec = ops.stop_grad(errvec)

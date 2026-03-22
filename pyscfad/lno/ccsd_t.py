@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 '''Impurity (T) correction.
 '''
+from __future__ import annotations
 
 from functools import partial
 import ctypes
@@ -35,7 +34,14 @@ from pyscfad import numpy as np
 from pyscfad.tools import timer
 from pyscfadlib import libcc_vjp as libcc
 
-def kernel(mycc: Any, eris: Any, ulo: Any, t1: Any = None, t2: Any = None, verbose: int = logger.NOTE) -> Any:
+def kernel(
+    mycc: Any,
+    eris: Any,
+    ulo: Any,
+    t1: Any = None,
+    t2: Any = None,
+    verbose: int = logger.NOTE,
+) -> Any:
     log = logger.new_logger(mycc, verbose)
     if t1 is None:
         t1 = mycc.t1

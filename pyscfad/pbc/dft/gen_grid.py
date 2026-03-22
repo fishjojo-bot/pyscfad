@@ -43,11 +43,22 @@ class UniformGrids(pyscf_gen_grid.UniformGrids):
             weights = np.full((ngrids,), self.cell.vol / ngrids)
             return weights
 
-    def make_mask(self, cell: Cell | None = None, coords: ArrayLike | None = None, relativity: int = 0, shls_slice=None,
-                  verbose=None) -> Array:
+    def make_mask(
+        self,
+        cell: Cell | None = None,
+        coords: ArrayLike | None = None,
+        relativity: int = 0,
+        shls_slice=None,
+        verbose=None,
+    ) -> Array:
         if cell is None:
             cell = self.cell
         if coords is None:
             coords = self.coords
-        return pyscf_gen_grid.make_mask(cell.view(pyscf_Cell), stop_grad(coords),
-                                        relativity, shls_slice, verbose)
+        return pyscf_gen_grid.make_mask(
+            cell.view(pyscf_Cell),
+            stop_grad(coords),
+            relativity,
+            shls_slice,
+            verbose,
+        )

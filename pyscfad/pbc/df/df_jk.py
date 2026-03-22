@@ -26,7 +26,13 @@ if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike, Array
     from pyscfad.pbc.gto import Cell
 
-def _ewald_exxdiv_for_G0(cell: Cell, kpts: ArrayLike, dms: ArrayLike, vk: ArrayLike, kpts_band: ArrayLike | None = None) -> Array:
+def _ewald_exxdiv_for_G0(
+    cell: Cell,
+    kpts: ArrayLike,
+    dms: ArrayLike,
+    vk: ArrayLike,
+    kpts_band: ArrayLike | None = None,
+) -> Array:
     s = cell.pbc_intor('int1e_ovlp', hermi=1, kpts=kpts)
     s = np.asarray(s)
     madelung = tools.pbc.madelung(cell, kpts)

@@ -57,7 +57,12 @@ def get_hcore(
     t = np.asarray(cell.pbc_intor('int1e_kin', hermi=1, kpts=kpts))
     return nuc + t
 
-def energy_elec(mf: KSCF, dm_kpts: ArrayLike | None = None, h1e_kpts: ArrayLike | None = None, vhf_kpts: ArrayLike | None = None) -> tuple[float, float]:
+def energy_elec(
+    mf: KSCF,
+    dm_kpts: ArrayLike | None = None,
+    h1e_kpts: ArrayLike | None = None,
+    vhf_kpts: ArrayLike | None = None,
+) -> tuple[float, float]:
     if dm_kpts is None:
         dm_kpts = mf.make_rdm1()
     if h1e_kpts is None:
@@ -77,9 +82,19 @@ def energy_elec(mf: KSCF, dm_kpts: ArrayLike | None = None, h1e_kpts: ArrayLike 
                     e_coul.imag)
     return (e1+e_coul).real, e_coul.real
 
-def get_fock(mf: KSCF, h1e: ArrayLike | None = None, s1e: ArrayLike | None = None, vhf: ArrayLike | None = None, dm: ArrayLike | None = None, cycle: int = -1, diis=None,
-             diis_start_cycle: int | None = None, level_shift_factor: float | None = None, damp_factor: float | None = None,
-             fock_last: ArrayLike | None = None) -> Array:
+def get_fock(
+    mf: KSCF,
+    h1e: ArrayLike | None = None,
+    s1e: ArrayLike | None = None,
+    vhf: ArrayLike | None = None,
+    dm: ArrayLike | None = None,
+    cycle: int = -1,
+    diis=None,
+    diis_start_cycle: int | None = None,
+    level_shift_factor: float | None = None,
+    damp_factor: float | None = None,
+    fock_last: ArrayLike | None = None,
+) -> Array:
     h1e_kpts, s_kpts, vhf_kpts, dm_kpts = h1e, s1e, vhf, dm
     if h1e_kpts is None:
         h1e_kpts = mf.get_hcore()
@@ -101,13 +116,30 @@ def get_fock(mf: KSCF, h1e: ArrayLike | None = None, s1e: ArrayLike | None = Non
     if dm_kpts is None:
         dm_kpts = mf.make_rdm1()
 
-    if 0 <= cycle < diis_start_cycle-1 and abs(damp_factor) > 1e-4  and fock_last is not None:
-        f_kpts = [mol_hf.damping(f, f_prev, damp_factor) for f,f_prev in zip(f_kpts,fock_last)]
+    if (
+        0 <= cycle < diis_start_cycle - 1
+        and abs(damp_factor) > 1e-4
+        and fock_last is not None
+    ):
+        f_kpts = [
+            mol_hf.damping(f, f_prev, damp_factor)
+            for f, f_prev in zip(f_kpts, fock_last)
+        ]
     if diis and cycle >= diis_start_cycle:
-        f_kpts = diis.update(s_kpts, dm_kpts, f_kpts, mf, h1e_kpts, vhf_kpts, f_prev=fock_last)
+        f_kpts = diis.update(
+            s_kpts,
+            dm_kpts,
+            f_kpts,
+            mf,
+            h1e_kpts,
+            vhf_kpts,
+            f_prev=fock_last,
+        )
     if abs(level_shift_factor) > 1e-4:
-        f_kpts = [mol_hf.level_shift(s, dm_kpts[k], f_kpts[k], level_shift_factor)
-                  for k, s in enumerate(s_kpts)]
+        f_kpts = [
+            mol_hf.level_shift(s, dm_kpts[k], f_kpts[k], level_shift_factor)
+            for k, s in enumerate(s_kpts)
+        ]
     return np.asarray(f_kpts)
 
 def make_rdm1(mo_coeff_kpts: ArrayLike, mo_occ_kpts: ArrayLike, **kwargs) -> Array:
@@ -145,8 +177,18 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
 
         self.exx_built = False
 
-    def get_jk(self, cell: Cell | None = None, dm_kpts: ArrayLike | None = None, hermi: int = 1, kpts: ArrayLike | None = None, kpts_band: ArrayLike | None = None,
-               with_j: bool = True, with_k: bool = True, omega: float | None = None, **kwargs) -> tuple[ArrayLike | None, ArrayLike | None]:
+    def get_jk(
+        self,
+        cell: Cell | None = None,
+        dm_kpts: ArrayLike | None = None,
+        hermi: int = 1,
+        kpts: ArrayLike | None = None,
+        kpts_band: ArrayLike | None = None,
+        with_j: bool = True,
+        with_k: bool = True,
+        omega: float | None = None,
+        **kwargs,
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
         if kpts is None:
             kpts = self.kpts
         if dm_kpts is None:
@@ -168,7 +210,12 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
                                        signature='(x,y),(x,y)->(x),(x,y)')(h_kpts, s_kpts)
         return eig_kpts, mo_coeff_kpts
 
-    def make_rdm1(self, mo_coeff_kpts: ArrayLike | None = None, mo_occ_kpts: ArrayLike | None = None, **kwargs) -> Array:
+    def make_rdm1(
+        self,
+        mo_coeff_kpts: ArrayLike | None = None,
+        mo_occ_kpts: ArrayLike | None = None,
+        **kwargs,
+    ) -> Array:
         if mo_coeff_kpts is None:
             mo_coeff_kpts = self.mo_coeff
         if mo_occ_kpts is None:
@@ -182,11 +229,27 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
                 fh5['scf/kpts'] = stop_grad(self.kpts)
         return self
 
-    def get_veff(self, cell: Cell | None = None, dm_kpts: ArrayLike | None = None, dm_last: ArrayLike = 0, vhf_last: ArrayLike = 0, hermi: int = 1,
-                 kpts: ArrayLike | None = None, kpts_band: ArrayLike | None = None, **kwargs) -> Array:
+    def get_veff(
+        self,
+        cell: Cell | None = None,
+        dm_kpts: ArrayLike | None = None,
+        dm_last: ArrayLike = 0,
+        vhf_last: ArrayLike = 0,
+        hermi: int = 1,
+        kpts: ArrayLike | None = None,
+        kpts_band: ArrayLike | None = None,
+        **kwargs,
+    ) -> Array:
         return pyscf_khf.KSCF.get_veff(
-                    self, cell=cell, dm_kpts=dm_kpts, dm_last=dm_last,
-                    vhf_last=vhf_last, hermi=hermi, kpts=kpts, kpts_band=kpts_band)
+            self,
+            cell=cell,
+            dm_kpts=dm_kpts,
+            dm_last=dm_last,
+            vhf_last=vhf_last,
+            hermi=hermi,
+            kpts=kpts,
+            kpts_band=kpts_band,
+        )
 
     get_hcore = get_hcore
     get_ovlp = get_ovlp
@@ -200,7 +263,12 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
     get_grad = stop_trace(pyscf_khf.KSCF.get_grad)
 
 class KRHF(KSCF, pyscf_khf.KRHF):
-    def get_init_guess(self, cell: Cell | None = None, key: str = 'minao', s1e: ArrayLike | None = None) -> Array:
+    def get_init_guess(
+        self,
+        cell: Cell | None = None,
+        key: str = 'minao',
+        s1e: ArrayLike | None = None,
+    ) -> Array:
         from pyscf import lib
         if s1e is None:
             s1e = self.get_ovlp(cell)

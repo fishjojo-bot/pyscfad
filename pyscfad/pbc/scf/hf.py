@@ -68,7 +68,12 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
         self.kpt = kpt
         self.conv_tol = max(cell.precision * 10, 1e-8)
 
-    def get_init_guess(self, cell: Cell | None = None, key: str = 'minao', s1e: ArrayLike | None = None) -> Array:
+    def get_init_guess(
+        self,
+        cell: Cell | None = None,
+        key: str = 'minao',
+        s1e: ArrayLike | None = None,
+    ) -> Array:
         if cell is None:
             cell = self.cell
         dm = mol_hf.SCF.get_init_guess(self, cell, key)
@@ -90,8 +95,18 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
         return nuc + h1
 
     @with_doc(pyscf_pbc_hf.SCF.get_jk.__doc__)
-    def get_jk(self, cell: Cell | None = None, dm: ArrayLike | None = None, hermi: int = 1, kpt: ArrayLike | None = None, kpts_band: ArrayLike | None = None,
-               with_j: bool = True, with_k: bool = True, omega: float | None = None, **kwargs) -> tuple[ArrayLike | None, ArrayLike | None]:
+    def get_jk(
+        self,
+        cell: Cell | None = None,
+        dm: ArrayLike | None = None,
+        hermi: int = 1,
+        kpt: ArrayLike | None = None,
+        kpts_band: ArrayLike | None = None,
+        with_j: bool = True,
+        with_k: bool = True,
+        omega: float | None = None,
+        **kwargs,
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
         if cell is None:
             cell = self.cell
         if dm is None:
@@ -114,8 +129,16 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
         if self.rsjk:
             raise NotImplementedError
         else:
-            vj, vk = self.with_df.get_jk(dm.reshape(-1,nao,nao), hermi, kpt, kpts_band,
-                                         with_j, with_k, omega, exxdiv=self.exxdiv)
+            vj, vk = self.with_df.get_jk(
+                dm.reshape(-1, nao, nao),
+                hermi,
+                kpt,
+                kpts_band,
+                with_j,
+                with_k,
+                omega,
+                exxdiv=self.exxdiv,
+            )
 
         if with_j:
             vj = _format_jks(vj, dm, kpts_band)
@@ -160,11 +183,27 @@ class SCF(mol_hf.SCF, pyscf_pbc_hf.SCF):
         logger.info(self, 'DF object = %s', self.with_df)
         return self
 
-    def get_veff(self, cell: Cell | None = None, dm: ArrayLike | None = None, dm_last: ArrayLike = 0, vhf_last: ArrayLike = 0, hermi: int = 1,
-                 kpt: ArrayLike | None = None, kpts_band: ArrayLike | None = None, **kwargs) -> Array:
+    def get_veff(
+        self,
+        cell: Cell | None = None,
+        dm: ArrayLike | None = None,
+        dm_last: ArrayLike = 0,
+        vhf_last: ArrayLike = 0,
+        hermi: int = 1,
+        kpt: ArrayLike | None = None,
+        kpts_band: ArrayLike | None = None,
+        **kwargs,
+    ) -> Array:
         return pyscf_pbc_hf.SCF.get_veff(
-                    self, cell=cell, dm=dm, dm_last=dm_last, vhf_last=vhf_last,
-                    hermi=hermi, kpt=kpt, kpts_band=kpts_band)
+            self,
+            cell=cell,
+            dm=dm,
+            dm_last=dm_last,
+            vhf_last=vhf_last,
+            hermi=hermi,
+            kpt=kpt,
+            kpts_band=kpts_band,
+        )
 
     energy_grad = NotImplemented
 
@@ -178,4 +217,3 @@ def normalize_dm_(mf: SCF, dm: ArrayLike, s1e: ArrayLike | None = None) -> Array
     # NOTE not tracing this function as it is mainly used
     # to generate the initial density matrix
     return stop_trace(pyscf_pbc_hf.normalize_dm_)(mf, dm, s1e=s1e)
-

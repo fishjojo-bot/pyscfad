@@ -78,7 +78,11 @@ def get_fock(
 
     if getattr(dm, 'ndim', None) == 2:
         dm = [dm*.5] * 2
-    if 0 <= cycle < diis_start_cycle-1 and abs(dampa)+abs(dampb) > 1e-4 and fock_last is not None:
+    if (
+        0 <= cycle < diis_start_cycle - 1
+        and abs(dampa) + abs(dampb) > 1e-4
+        and fock_last is not None
+    ):
         f = (hf.damping(f[0], fock_last[0], dampa),
              hf.damping(f[1], fock_last[1], dampb))
     if diis and cycle >= diis_start_cycle:
@@ -174,7 +178,11 @@ class UHF(hf.SCF, pyscf_uhf.UHF):
             vhf += np.asarray(vhf_last)
         return vhf
 
-    def get_occ(self, mo_energy: ArrayLike | None = None, mo_coeff: ArrayLike | None = None) -> Array:
+    def get_occ(
+        self,
+        mo_energy: ArrayLike | None = None,
+        mo_coeff: ArrayLike | None = None,
+    ) -> Array:
         if mo_energy is None:
             mo_energy = self.mo_energy
         mo_energy = ops.to_numpy(mo_energy)
@@ -182,13 +190,22 @@ class UHF(hf.SCF, pyscf_uhf.UHF):
             mo_coeff = ops.to_numpy(mo_coeff)
         return pyscf_uhf.UHF.get_occ(self, mo_energy, mo_coeff)
 
-    def get_grad(self, mo_coeff: ArrayLike, mo_occ: ArrayLike, fock: ArrayLike | None = None) -> Array:
+    def get_grad(
+        self,
+        mo_coeff: ArrayLike,
+        mo_occ: ArrayLike,
+        fock: ArrayLike | None = None,
+    ) -> Array:
         if fock is None:
             dm1 = self.make_rdm1(mo_coeff, mo_occ)
             fock = self.get_hcore(self.mol) + self.get_veff(self.mol, dm1)
         return get_grad(mo_coeff, mo_occ, fock)
 
-    def spin_square(self, mo_coeff: ArrayLike | None = None, s: ArrayLike | None = None) -> tuple[float, float]:
+    def spin_square(
+        self,
+        mo_coeff: ArrayLike | None = None,
+        s: ArrayLike | None = None,
+    ) -> tuple[float, float]:
         if mo_coeff is None:
             mo_coeff = (self.mo_coeff[0][:,self.mo_occ[0]>0],
                         self.mo_coeff[1][:,self.mo_occ[1]>0])

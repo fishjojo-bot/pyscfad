@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 '''Impurity solver for LNO CCSD/CCSD(T).
 '''
+from __future__ import annotations
 
 import numpy
 from functools import reduce
@@ -89,8 +88,16 @@ def _make_df_eris_incore(cc, mo_coeff=None, fockao=None):
     return eris
 
 
-def impurity_solve(mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, frozen: Any = None,
-                   verbose_imp: int = 0, ccsd_t: bool = False, dcsd: bool = False) -> tuple[Any, Any, Any]:
+def impurity_solve(
+    mf: Any,
+    mo_coeff: Any,
+    lo_coeff: Any,
+    eris: Any = None,
+    frozen: Any = None,
+    verbose_imp: int = 0,
+    ccsd_t: bool = False,
+    dcsd: bool = False,
+) -> tuple[Any, Any, Any]:
     r'''Solve impurity problem and calculate local correlation energy.
 
     Args:
@@ -159,7 +166,14 @@ def impurity_solve(mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, froz
         #    mcc, imp_eris, prjlo, t1=t1, t2=t2, verbose=verbose_imp)
         #from pyscfad.cc import gccsd_t
         #elcorr_cc_t = gccsd_t.kernel(mcc, prjlo, t1=t1, t2=t2)
-        elcorr_cc_t = ccsd_t_mod.kernel(mcc, imp_eris, prjlo, t1=t1, t2=t2, verbose=verbose_imp)
+        elcorr_cc_t = ccsd_t_mod.kernel(
+            mcc,
+            imp_eris,
+            prjlo,
+            t1=t1,
+            t2=t2,
+            verbose=verbose_imp,
+        )
     else:
         elcorr_cc_t = 0.
 
@@ -202,7 +216,15 @@ def ccsd_fragment_energy(eris: Any, t1: Any, t2: Any, prj: Any) -> Any:
     return e2
 
 class LNOCCSD(lno_base.LNO):
-    def __init__(self, mf: Any, thresh: float = 1e-4, frozen: Any = None, fock: Any = None, s1e: Any = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        mf: Any,
+        thresh: float = 1e-4,
+        frozen: Any = None,
+        fock: Any = None,
+        s1e: Any = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(mf, thresh=thresh, frozen=frozen, fock=fock, s1e=s1e, **kwargs)
         self.efrag_cc = None
         self.efrag_pt2 = None
@@ -210,10 +232,24 @@ class LNOCCSD(lno_base.LNO):
         self.ccsd_t = False
         self.dcsd = False
 
-    def impurity_solve(self, mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, frozen: Any = None) -> tuple[Any, Any, Any]:
-        return impurity_solve(mf, mo_coeff, lo_coeff, eris=eris, frozen=frozen,
-                              verbose_imp=self.verbose_imp, ccsd_t=self.ccsd_t,
-                              dcsd=self.dcsd)
+    def impurity_solve(
+        self,
+        mf: Any,
+        mo_coeff: Any,
+        lo_coeff: Any,
+        eris: Any = None,
+        frozen: Any = None,
+    ) -> tuple[Any, Any, Any]:
+        return impurity_solve(
+            mf,
+            mo_coeff,
+            lo_coeff,
+            eris=eris,
+            frozen=frozen,
+            verbose_imp=self.verbose_imp,
+            ccsd_t=self.ccsd_t,
+            dcsd=self.dcsd,
+        )
 
     def _post_proc(self, frag_res: list[Any], frag_wghtlist: Any) -> None:
         ''' Post processing results returned by ``impurity_solve`` collected in ``frag_res``.

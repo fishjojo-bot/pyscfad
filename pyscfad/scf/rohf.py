@@ -45,7 +45,12 @@ def energy_elec(
 class _FockMatrix(pytree.PytreeNode):
     _dynamic_attr = {'fock', 'focka', 'fockb'}
 
-    def __init__(self, fock: ArrayLike, focka: ArrayLike | None = None, fockb: ArrayLike | None = None):
+    def __init__(
+        self,
+        fock: ArrayLike,
+        focka: ArrayLike | None = None,
+        fockb: ArrayLike | None = None,
+    ):
         self.fock = fock
         self.focka = focka
         self.fockb = fockb
@@ -56,7 +61,12 @@ class _FockMatrix(pytree.PytreeNode):
 class _OrbitalEnergy(pytree.PytreeNode):
     _dynamic_attr = {'mo_energy', 'mo_ea', 'mo_eb'}
 
-    def __init__(self, mo_energy: ArrayLike, mo_ea: ArrayLike | None = None, mo_eb: ArrayLike | None = None):
+    def __init__(
+        self,
+        mo_energy: ArrayLike,
+        mo_ea: ArrayLike | None = None,
+        mo_eb: ArrayLike | None = None,
+    ):
         self.mo_energy = mo_energy
         self.mo_ea = mo_ea
         self.mo_eb = mo_eb
@@ -108,7 +118,11 @@ def get_fock(
         f = hf.level_shift(s1e, dm_tot*.5, f, level_shift_factor)
     return _FockMatrix(f, focka, fockb)
 
-def get_roothaan_fock(focka_fockb: tuple[ArrayLike, ArrayLike], dma_dmb: tuple[ArrayLike, ArrayLike], s: ArrayLike) -> Array:
+def get_roothaan_fock(
+    focka_fockb: tuple[ArrayLike, ArrayLike],
+    dma_dmb: tuple[ArrayLike, ArrayLike],
+    s: ArrayLike,
+) -> Array:
     nao = s.shape[0]
     focka, fockb = focka_fockb
     dma, dmb = dma_dmb
@@ -160,7 +174,11 @@ def make_rdm1(mo_coeff: ArrayLike, mo_occ: ArrayLike, **kwargs) -> Array:
     dm_b = np.dot(mo_coeff*mo_occb, mo_coeff.conj().T)
     return np.array((dm_a, dm_b))
 
-def get_occ(mf: ROHF, mo_energy: ArrayLike | _OrbitalEnergy | None = None, mo_coeff: ArrayLike | None = None) -> Array:
+def get_occ(
+    mf: ROHF,
+    mo_energy: ArrayLike | _OrbitalEnergy | None = None,
+    mo_coeff: ArrayLike | None = None,
+) -> Array:
     from pyscf.scf.rohf import _fill_rohf_occ
     if mo_energy is None: mo_energy = mf.mo_energy
     if getattr(mo_energy, 'mo_ea', None) is not None:
@@ -193,7 +211,10 @@ def get_occ(mf: ROHF, mo_energy: ArrayLike | _OrbitalEnergy | None = None, mo_co
             core_idx = mo_occ == 2
             open_idx = mo_occ == 1
             vir_idx = mo_occ == 0
-            logger.debug(mf, '                  Roothaan           | alpha              | beta')
+            logger.debug(
+                mf,
+                '                  Roothaan           | alpha              | beta',
+            )
             logger.debug(mf, '  Highest 2-occ = %18.15g | %18.15g | %18.15g',
                          max(mo_eab[core_idx]),
                          max(mo_ea[core_idx]), max(mo_eb[core_idx]))
@@ -216,7 +237,11 @@ class ROHF(hf.SCF, pyscf_rohf.ROHF):
     def __init__(self, mol: Mole) -> None:
         pyscf_rohf.ROHF.__init__(self, mol)
 
-    def eig(self, fock: _FockMatrix | ArrayLike, s: ArrayLike) -> tuple[ArrayLike | _OrbitalEnergy, Array]:
+    def eig(
+        self,
+        fock: _FockMatrix | ArrayLike,
+        s: ArrayLike,
+    ) -> tuple[ArrayLike | _OrbitalEnergy, Array]:
         focka = getattr(fock, 'focka', None)
         fockb = getattr(fock, 'fockb', None)
         fockab = getattr(fock, 'fock', fock)
@@ -230,13 +255,23 @@ class ROHF(hf.SCF, pyscf_rohf.ROHF):
             e = _OrbitalEnergy(e, mo_ea, mo_eb)
         return e, c
 
-    def get_grad(self, mo_coeff: ArrayLike, mo_occ: ArrayLike, fock: ArrayLike | _FockMatrix | None = None) -> Array:
+    def get_grad(
+        self,
+        mo_coeff: ArrayLike,
+        mo_occ: ArrayLike,
+        fock: ArrayLike | _FockMatrix | None = None,
+    ) -> Array:
         if fock is None:
             dm1 = self.make_rdm1(mo_coeff, mo_occ)
             fock = self.get_hcore(self.mol) + self.get_veff(self.mol, dm1)
         return get_grad(mo_coeff, mo_occ, fock)
 
-    def make_rdm1(self, mo_coeff: ArrayLike | None = None, mo_occ: ArrayLike | None = None, **kwargs) -> Array:
+    def make_rdm1(
+        self,
+        mo_coeff: ArrayLike | None = None,
+        mo_occ: ArrayLike | None = None,
+        **kwargs,
+    ) -> Array:
         if mo_coeff is None: mo_coeff = self.mo_coeff
         if mo_occ is None: mo_occ = self.mo_occ
         if self.mol.spin < 0:

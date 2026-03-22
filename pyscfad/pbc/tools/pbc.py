@@ -95,7 +95,11 @@ def get_nimgs(cell: Cell, rcut: float | None = None, dimension: int | None = Non
     bounds = np.ceil(bounds).astype(int)
     return bounds
 
-def nimgs_to_lattice_Ls(cell: Cell, nimgs: int | ArrayLike | None = None, dimension: int | None = None) -> Array:
+def nimgs_to_lattice_Ls(
+    cell: Cell,
+    nimgs: int | ArrayLike | None = None,
+    dimension: int | None = None,
+) -> Array:
     """Get the lattice translation vectors given the number of
     periodic images.
 
@@ -132,7 +136,13 @@ def nimgs_to_lattice_Ls(cell: Cell, nimgs: int | ArrayLike | None = None, dimens
     Ls = np.dot(Ts[:,:dimension], a[:dimension])
     return Ls
 
-def get_lattice_Ls(cell: Cell, nimgs: int | ArrayLike | None = None, rcut: float | None = None, dimension: int | None = None, discard: bool = True) -> Array:
+def get_lattice_Ls(
+    cell: Cell,
+    nimgs: int | ArrayLike | None = None,
+    rcut: float | None = None,
+    dimension: int | None = None,
+    discard: bool = True,
+) -> Array:
     """Get the lattice translation vectors for lattice sum.
 
     Same as pyscf :func:`~pyscf.pbc.tools.get_lattice_Ls`,
@@ -171,8 +181,17 @@ def get_lattice_Ls(cell: Cell, nimgs: int | ArrayLike | None = None, rcut: float
     return Ls
 
 @wraps(pyscf_pbctools.get_coulG)
-def get_coulG(cell: Cell, k: ArrayLike = numpy.zeros(3), exx: bool | str = False, mf=None, mesh: ArrayLike | None = None, Gv: ArrayLike | None = None,
-              wrap_around: bool = True, omega: float | None = None, **kwargs) -> Array:
+def get_coulG(
+    cell: Cell,
+    k: ArrayLike = numpy.zeros(3),
+    exx: bool | str = False,
+    mf=None,
+    mesh: ArrayLike | None = None,
+    Gv: ArrayLike | None = None,
+    wrap_around: bool = True,
+    omega: float | None = None,
+    **kwargs,
+) -> Array:
     exxdiv = exx
     if isinstance(exx, str):
         exxdiv = exx

@@ -16,7 +16,7 @@ from mpi4py import MPI
 import os
 import uuid
 import tempfile
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 import geometric
 
@@ -25,18 +25,14 @@ from pyscf import lib
 from pyscf.lib import logger
 from pyscf.geomopt.addons import dump_mol_geometry
 
-if TYPE_CHECKING:
-    from pyscfad.typing import ArrayLike, Array
-    from pyscfad.gto import Mole
-
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
 class PySCFADEngineMPI(geometric.engine.Engine):
     def __init__(
         self,
-        mol: Mole,
-        value_and_grad: Callable[[Mole], tuple[ArrayLike, ArrayLike]],
+        mol: Any,
+        value_and_grad: Callable[[Any], tuple[Any, Any]],
         maxsteps: int = 100,
         callback: Callable[[dict[str, Any]], Any] | None = None,
     ) -> None:
@@ -54,7 +50,7 @@ class PySCFADEngineMPI(geometric.engine.Engine):
         self.e_last = 0
         #self.assert_convergence = assert_convergence
 
-    def calc_new(self, coords: ArrayLike, dirname: str) -> dict[str, Array]:
+    def calc_new(self, coords: Any, dirname: str) -> dict[str, Any]:
         if self.cycle >= self.maxsteps:
             raise NotConvergedError( 'Geometry optimization is not converged in '
                                     f'{self.maxsteps} iterations')
@@ -96,13 +92,13 @@ class PySCFADEngineMPI(geometric.engine.Engine):
         return {'energy': energy, 'gradient': gradients.ravel()}
 
 def kernel(
-    mol: Mole,
-    value_and_grad: Callable[[Mole], tuple[ArrayLike, ArrayLike]],
+    mol: Any,
+    value_and_grad: Callable[[Any], tuple[Any, Any]],
     constraints: Any = None,
     callback: Callable[[dict[str, Any]], Any] | None = None,
     maxsteps: int = 100,
     **kwargs: Any,
-) -> tuple[bool, Mole]:
+) -> tuple[bool, Any]:
     engine = PySCFADEngineMPI(mol, value_and_grad)
     engine.callback = callback
     engine.maxsteps = maxsteps

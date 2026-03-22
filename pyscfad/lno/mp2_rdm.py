@@ -28,7 +28,14 @@ from pyscfad.implicit_diff import make_implicit_diff
 from pyscfad.scipy.sparse.linalg import gmres
 from pyscfad.tools.linear_solver import GMRESDisp
 
-def fock_response_rhf(mf: Any, dm: Any, mo_coeff: Any = None, mo_occ: Any = None, full: bool = True, einsum: Any = np.einsum) -> Any:
+def fock_response_rhf(
+    mf: Any,
+    dm: Any,
+    mo_coeff: Any = None,
+    mo_occ: Any = None,
+    full: bool = True,
+    einsum: Any = np.einsum,
+) -> Any:
     if mo_coeff is None:
         mo_coeff = mf.mo_coeff
     if mo_occ is None:
@@ -43,7 +50,17 @@ def fock_response_rhf(mf: Any, dm: Any, mo_coeff: Any = None, mo_occ: Any = None
     rvo = einsum('xa,xy,yi->ai', Ca, rao, Ci)
     return rvo
 
-def make_rdm1_vo_frag(mp: Any, dm1_oo: Any, dm1_vv: Any, Lia: Any, Ljb: Any, eia: Any, ejb: Any, eris: Any = None, ao_repr: bool = False) -> Any:
+def make_rdm1_vo_frag(
+    mp: Any,
+    dm1_oo: Any,
+    dm1_vv: Any,
+    Lia: Any,
+    Ljb: Any,
+    eia: Any,
+    ejb: Any,
+    eris: Any = None,
+    ao_repr: bool = False,
+) -> Any:
     mf = mp._scf
     mo_occ = mf.mo_occ
     orbo, orbv = mp.split_mo()[1:3]

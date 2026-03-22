@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 '''Impurity (T) correction (slow version).
 '''
+from __future__ import annotations
 
 from typing import Any
 
@@ -34,11 +33,20 @@ def get_ovvv(ovvv: Any, *slices: Any) -> Any:
     return ovvv.reshape(nocc,nvir,nvir1,nvir1)
 
 
-def kernel(mycc: Any, eris: Any, ulo: Any, t1: Any = None, t2: Any = None, verbose: int = logger.NOTE) -> Any:
+def kernel(
+    mycc: Any,
+    eris: Any,
+    ulo: Any,
+    t1: Any = None,
+    t2: Any = None,
+    verbose: int = logger.NOTE,
+) -> Any:
     log = logger.new_logger(mycc, verbose)
 
-    if t1 is None: t1 = mycc.t1
-    if t2 is None: t2 = mycc.t2
+    if t1 is None:
+        t1 = mycc.t1
+    if t2 is None:
+        t2 = mycc.t2
 
     nocc, nvir = t1.shape
     mo_e = eris.mo_energy

@@ -26,10 +26,20 @@ from pyscfad.gto.eval_gto import _eval_gto_dot_grad_tangent_r0
 
 if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike, Array
-    from pyscfad.pbc.gto import Cell
+    from pyscfad.pbc.gto import Cell as CellType
 
-def eval_gto(cell: Cell, eval_name: str, coords: ArrayLike, comp: int | None = None, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
-             shls_slice=None, non0tab=None, ao_loc=None, out=None) -> Array:
+def eval_gto(
+    cell: CellType,
+    eval_name: str,
+    coords: ArrayLike,
+    comp: int | None = None,
+    kpts: ArrayLike | None = None,
+    kpt: ArrayLike | None = None,
+    shls_slice=None,
+    non0tab=None,
+    ao_loc=None,
+    out=None,
+) -> Array:
     if cell.abc is None:
         fn = eval_gto_diff_cell
     else:
@@ -38,7 +48,7 @@ def eval_gto(cell: Cell, eval_name: str, coords: ArrayLike, comp: int | None = N
               shls_slice=shls_slice, non0tab=non0tab, ao_loc=ao_loc, out=out)
 
 def eval_gto_diff_full(
-    cell: Cell,
+    cell: CellType,
     eval_name: str,
     coords: ArrayLike,
     comp: int | None = None,
@@ -101,7 +111,7 @@ def eval_gto_diff_full(
     return out
 
 def eval_gto_diff_cell(
-    cell: Cell,
+    cell: CellType,
     eval_name: str,
     coords: ArrayLike,
     comp: int | None = None,
@@ -120,7 +130,7 @@ def eval_gto_diff_cell(
 
 @partial(custom_jvp, nondiff_argnums=tuple(range(1,10)))
 def _eval_gto(
-    cell: Cell,
+    cell: CellType,
     eval_name: str,
     coords: ArrayLike,
     comp: int | None,
@@ -155,7 +165,7 @@ def _eval_gto_jvp(eval_name, coords, comp, kpts, kpt,
     return primal_out, tangent_out
 
 
-def _eval_gto_jvp_r0(cell: Cell, cell_t, eval_name: str, coords: ArrayLike,
+def _eval_gto_jvp_r0(cell: CellType, cell_t, eval_name: str, coords: ArrayLike,
                      comp, kpts, kpt, shls_slice, non0tab, ao_loc):
     if 'ip' in eval_name:
         raise NotImplementedError('Please use GTOval_cart_deriv1 or \

@@ -139,9 +139,16 @@ class KRKS(rks.KohnShamDFT, khf.KRHF):
 
     get_veff = get_veff
 
-    def energy_elec(self, dm_kpts: ArrayLike | None = None, h1e_kpts: ArrayLike | None = None, vhf: VXC | None = None) -> tuple[float, float]:
-        if h1e_kpts is None: h1e_kpts = self.get_hcore(self.cell, self.kpts)
-        if dm_kpts is None: dm_kpts = self.make_rdm1()
+    def energy_elec(
+        self,
+        dm_kpts: ArrayLike | None = None,
+        h1e_kpts: ArrayLike | None = None,
+        vhf: VXC | None = None,
+    ) -> tuple[float, float]:
+        if h1e_kpts is None:
+            h1e_kpts = self.get_hcore(self.cell, self.kpts)
+        if dm_kpts is None:
+            dm_kpts = self.make_rdm1()
         if vhf is None or getattr(vhf, 'ecoul', None) is None:
             vhf = self.get_veff(self.cell, dm_kpts)
 

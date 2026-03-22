@@ -63,6 +63,8 @@ def get_gth_vlocG(cell: Cell, Gv: ArrayLike) -> Array:
                               -(2*numpy.pi)**(3/2.)*rloc**3*np.exp(-0.5*G2_red) * cfacs)
 
     return vlocG
+
+def _qli(x: ArrayLike, l: int, i: int) -> ArrayLike:
     sqrt = np.sqrt
     if l==0 and i==0:
         return 4*sqrt(2.)

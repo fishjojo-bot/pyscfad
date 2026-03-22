@@ -81,8 +81,17 @@ def kernel_1frag(mfcc: Any, eris: Any, orbfragloc: Any, no_type: str,
                                    frozen=frzfrag, eris=eris)
     return frag_res
 
-def make_fpno1(mfcc: Any, eris: Any, orbfragloc: Any, no_type: str, thresh_internal: float, thresh_external: Any,
-               frozen_mask: Any = None, frag_target_nocc: Any = None, frag_target_nvir: Any = None) -> tuple[Any, Any]:
+def make_fpno1(
+    mfcc: Any,
+    eris: Any,
+    orbfragloc: Any,
+    no_type: str,
+    thresh_internal: float,
+    thresh_external: Any,
+    frozen_mask: Any = None,
+    frag_target_nocc: Any = None,
+    frag_target_nvir: Any = None,
+) -> tuple[Any, Any]:
     mytimer = timer.Timer()
 
     mf = mfcc._scf
@@ -354,7 +363,12 @@ def make_rdm1_mp2(t2: Any, kind: str, e1_or_e2: str, swapidx: str) -> Any:
     return dm
 
 
-def augment_ov(dmov: Any, thresh: float, prj_occ: Any = None, prj_vir: Any = None) -> tuple[Any, Any]:
+def augment_ov(
+    dmov: Any,
+    thresh: float,
+    prj_occ: Any = None,
+    prj_vir: Any = None,
+) -> tuple[Any, Any]:
     if prj_occ is not None:
         dmov = np.dot(prj_occ.T, dmov)
     if prj_vir is not None:
@@ -364,7 +378,14 @@ def augment_ov(dmov: Any, thresh: float, prj_occ: Any = None, prj_vir: Any = Non
     v = vt.conj().T
     return u[:,idx], v[:,idx]
 
-def augment_virt(dm_corr: Any, orbo: Any, orbv: Any, thresh: float, s1e: Any = None, prj: Any = None) -> Any:
+def augment_virt(
+    dm_corr: Any,
+    orbo: Any,
+    orbv: Any,
+    thresh: float,
+    s1e: Any = None,
+    prj: Any = None,
+) -> Any:
     nocc = orbo.shape[-1]
     dm_corr_ov = transform_rdm1(dm_corr, orbo, orbv, s1e)
     if prj is not None:
@@ -442,7 +463,13 @@ def collocate_unitary(us: Any) -> tuple[Any, Any]:
     assert us0.shape[-1] + x1.shape[-1] == us0.shape[0]
     return us0, x1
 
-def osv_compression(dms: Any, orb: Any, thresh: float, prj: Any = None, norb_target: Any = None) -> tuple[Any, Any]:
+def osv_compression(
+    dms: Any,
+    orb: Any,
+    thresh: float,
+    prj: Any = None,
+    norb_target: Any = None,
+) -> tuple[Any, Any]:
     us = []
     for dm in dms:
         e, u = scipy.linalg.eigh(dm, deg_thresh=COMPRESS_DEG_THRESH)
@@ -455,8 +482,15 @@ def osv_compression(dms: Any, orb: Any, thresh: float, prj: Any = None, norb_tar
     orb0x = np.dot(orb, x1)
     return orb1x, orb0x
 
-def natorb_compression(dm: Any, orb: Any, thresh: float, prj: Any = None, norb_target: Any = None,
-                       uuvir2_corr: Any = None, natorb_occdeg_thresh: float = 0) -> tuple[Any, Any]:
+def natorb_compression(
+    dm: Any,
+    orb: Any,
+    thresh: float,
+    prj: Any = None,
+    norb_target: Any = None,
+    uuvir2_corr: Any = None,
+    natorb_occdeg_thresh: float = 0,
+) -> tuple[Any, Any]:
     e, u = scipy.linalg.eigh(dm, deg_thresh=COMPRESS_DEG_THRESH)
     if norb_target is None:
         idx = numpy.where(abs(e) > thresh)[0]
@@ -468,7 +502,9 @@ def natorb_compression(dm: Any, orb: Any, thresh: float, prj: Any = None, norb_t
         if norb_target < 0:
             raise ValueError(f'Target norb is negative: {norb_target}.')
         elif norb_target > e.size:
-            raise ValueError(f'Target norb exceeds total number of orbs: {norb_target} > {e.size}')
+            raise ValueError(
+                f'Target norb exceeds total number of orbs: {norb_target} > {e.size}'
+            )
         order = e.argsort()[::-1]
         idx = order[:norb_target]
     else:
@@ -567,7 +603,15 @@ def mo_splitter(maskact: Any, maskocc: Any, kind: str = 'mask') -> Any:
 class LNO(pytree.PytreeNode):
     _dynamic_attr = {'_scf', 'mol', 'with_df'}
 
-    def __init__(self, mf: Any, thresh: float = 1e-4, frozen: Any = None, fock: Any = None, s1e: Any = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        mf: Any,
+        thresh: float = 1e-4,
+        frozen: Any = None,
+        fock: Any = None,
+        s1e: Any = None,
+        **kwargs: Any,
+    ) -> None:
         self._scf = mf
         self.mol = mf.mol
         if getattr(mf, 'with_df', None):

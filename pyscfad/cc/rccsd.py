@@ -28,7 +28,12 @@ if TYPE_CHECKING:
     from pyscfad.typing import ArrayLike
 
 @jit
-def update_amps(cc: RCCSD, t1: ArrayLike, t2: ArrayLike, eris: _ChemistsERIs) -> tuple[ArrayLike, ArrayLike]:
+def update_amps(
+    cc: RCCSD,
+    t1: ArrayLike,
+    t2: ArrayLike,
+    eris: _ChemistsERIs,
+) -> tuple[ArrayLike, ArrayLike]:
     nocc, nvir = t1.shape
     fock = eris.fock
     mo_e_o = eris.mo_energy[:nocc]
@@ -64,7 +69,12 @@ def update_amps(cc: RCCSD, t1: ArrayLike, t2: ArrayLike, eris: _ChemistsERIs) ->
     return t1new, t2new
 
 @jit
-def amplitude_equation(cc: RCCSD, t1: ArrayLike, t2: ArrayLike, eris: _ChemistsERIs) -> tuple[ArrayLike, ArrayLike]:
+def amplitude_equation(
+    cc: RCCSD,
+    t1: ArrayLike,
+    t2: ArrayLike,
+    eris: _ChemistsERIs,
+) -> tuple[ArrayLike, ArrayLike]:
     nocc, nvir = t1.shape
     fock = eris.fock
 

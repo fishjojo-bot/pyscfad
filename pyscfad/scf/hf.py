@@ -303,7 +303,13 @@ def level_shift(s: ArrayLike, d: ArrayLike, f: ArrayLike, factor: float) -> Arra
 
 
 @with_doc(pyscf_hf.dip_moment.__doc__)
-def dip_moment(mol: Mole, dm: ArrayLike, unit: str = 'Debye', verbose: int = logger.NOTE, **kwargs) -> Array:
+def dip_moment(
+    mol: Mole,
+    dm: ArrayLike,
+    unit: str = 'Debye',
+    verbose: int = logger.NOTE,
+    **kwargs,
+) -> Array:
     log = logger.new_logger(mol, verbose)
 
     if 'unit_symbol' in kwargs:
@@ -370,7 +376,11 @@ def get_fock(
     if dm is None:
         dm = mf.make_rdm1()
 
-    if 0 <= cycle < diis_start_cycle-1 and abs(damp_factor) > 1e-4 and fock_last is not None:
+    if (
+        0 <= cycle < diis_start_cycle - 1
+        and abs(damp_factor) > 1e-4
+        and fock_last is not None
+    ):
         f = pyscf_hf.damping(f, fock_last, damp_factor)
     if diis is not None and cycle >= diis_start_cycle:
         f = diis.update(s1e, dm, f, mf, h1e, vhf, f_prev=fock_last)
@@ -525,7 +535,12 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
         else:
             return jac.mol
 
-    def density_fit(self, auxbasis: Any | None = None, with_df: Any | None = None, only_dfj: bool = False) -> Any:
+    def density_fit(
+        self,
+        auxbasis: Any | None = None,
+        with_df: Any | None = None,
+        only_dfj: bool = False,
+    ) -> Any:
         from pyscfad.df import df_jk # pylint: disable=cyclic-import
         return df_jk.density_fit(self, auxbasis, with_df, only_dfj)
 
@@ -581,7 +596,11 @@ class SCF(pytree.PytreeNode, pyscf_hf.SCF):
     def check_sanity(self) -> None:
         pass
 
-    def get_occ(self, mo_energy: ArrayLike | None = None, mo_coeff: ArrayLike | None = None) -> Array:
+    def get_occ(
+        self,
+        mo_energy: ArrayLike | None = None,
+        mo_coeff: ArrayLike | None = None,
+    ) -> Array:
         if mo_energy is None:
             mo_energy = self.mo_energy
         return pyscf_hf.SCF.get_occ(self, ops.to_numpy(mo_energy))

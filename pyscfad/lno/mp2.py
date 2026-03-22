@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
 '''Impurity MP2 solver.
 '''
+from __future__ import annotations
 
 from functools import reduce
 import numpy
@@ -93,9 +92,22 @@ class LNOMP2(lno_base.LNO):
         super().__init__(mf, thresh=thresh, frozen=frozen, **kwargs)
         self.efrag_pt2 = None
 
-    def impurity_solve(self, mf: Any, mo_coeff: Any, lo_coeff: Any, eris: Any = None, frozen: Any = None) -> tuple[Any]:
-        return impurity_solve(mf, mo_coeff, lo_coeff, eris=eris, frozen=frozen,
-                              verbose_imp=self.verbose_imp)
+    def impurity_solve(
+        self,
+        mf: Any,
+        mo_coeff: Any,
+        lo_coeff: Any,
+        eris: Any = None,
+        frozen: Any = None,
+    ) -> tuple[Any]:
+        return impurity_solve(
+            mf,
+            mo_coeff,
+            lo_coeff,
+            eris=eris,
+            frozen=frozen,
+            verbose_imp=self.verbose_imp,
+        )
 
     def _post_proc(self, frag_res: list[Any], frag_wghtlist: Any) -> None:
         ''' Post processing results returned by `impurity_solve` collected in `frag_res`.
