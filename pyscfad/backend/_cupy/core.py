@@ -21,5 +21,4 @@ def is_array(x: Any) -> bool:
     return isinstance(x, cupy.ndarray)
 
 def to_numpy(x: Any) -> Any:
-    out = cupy.asnumpy(x)
-    return out
+    return cupy.asnumpy(x)

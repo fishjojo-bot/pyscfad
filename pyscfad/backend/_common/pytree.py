@@ -19,5 +19,4 @@ def class_as_pytree_node(cls: Any, leaf_names: list[str] | tuple[str, ...], num_
     return cls
 
 class PytreeNode:
-    """Fallback pytree base class for non-transforming backends."""
     pass

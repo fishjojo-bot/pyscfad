@@ -50,9 +50,9 @@ from jax import numpy as jnp
 from pyscfadlib import lapack as lp
 
 def eigh_gen(a, b, *,
-             lower: bool = True,
-             itype: int = 1,
-             deg_thresh: float = 1e-9):
+             lower=True,
+             itype=1,
+             deg_thresh=1e-9):
     a = symmetrize(a)
     b = symmetrize(b)
     w, v = eigh_gen_p.bind(a, b, lower=lower, itype=itype, deg_thresh=deg_thresh)

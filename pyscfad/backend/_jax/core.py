@@ -47,3 +47,4 @@ def index_mul(x: Any, idx: Any, y: Any) -> Any:
     y = jnp.asarray(y)
     return x.at[idx].multiply(y)
 
+

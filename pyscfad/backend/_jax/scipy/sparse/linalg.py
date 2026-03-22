@@ -79,5 +79,5 @@ def gmres(A: Any, b: Any, x0: Any = None, *, tol: float = 1e-5, atol: float = 1e
   x = lax.custom_linear_solve(A, b, solve=_solve, transpose_solve=_solve)
 
   failed = jnp.isnan(_norm(x))
-  info: Any = jnp.where(failed, -1, 0)
+  info = jnp.where(failed, -1, 0)
   return x, info

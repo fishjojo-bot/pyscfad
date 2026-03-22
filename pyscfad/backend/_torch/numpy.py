@@ -18,5 +18,4 @@ from typing import Any
 import torch
 
 def iscomplexobj(x: Any) -> bool:
-    out = torch.is_complex(x)
-    return out
+    return torch.is_complex(x)

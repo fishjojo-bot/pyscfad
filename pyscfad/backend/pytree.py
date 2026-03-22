@@ -26,10 +26,5 @@ def __getattr__(name: str) -> Any:
     return getattr(get_backend(), name)
 
 def class_as_pytree_node(cls: Any, leaf_names: list[str] | tuple[str, ...], num_args: int = 0, exclude_aux_name: tuple[str, ...] = ()) -> Any:
-    out = get_backend().class_as_pytree_node(
-        cls,
-        leaf_names,
-        num_args=num_args,
-        exclude_aux_name=exclude_aux_name,
-    )
-    return out
+    return get_backend().class_as_pytree_node(cls, leaf_names, num_args=num_args,
+                                              exclude_aux_name=exclude_aux_name)

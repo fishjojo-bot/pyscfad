@@ -31,5 +31,4 @@ def inv(a: Any, **kwargs) -> Any:
 
 def norm(x: Any, ord: Any = None, axis: Any = None, keepdims: bool = False, **kwargs) -> Any:
     x = torch.as_tensor(x)
-    out = torch.linalg.norm(x, ord, axis, keepdims, **kwargs)
-    return out
+    return torch.linalg.norm(x, ord, axis, keepdims, **kwargs)
