@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import sys
 import h5py
 import numpy
@@ -24,14 +27,18 @@ from pyscfad.scf import hf as mol_hf
 from pyscfad.pbc import df
 from pyscfad.pbc.scf import hf as pbchf
 
-def get_ovlp(mf, cell=None, kpts=None):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
+def get_ovlp(mf: KSCF, cell: Cell | None = None, kpts: ArrayLike | None = None) -> Array:
     if cell is None:
         cell = mf.cell
     if kpts is None:
         kpts = mf.kpts
     return pbchf.get_ovlp(cell, kpts)
 
-def get_hcore(mf, cell=None, kpts=None, **kwargs):
+def get_hcore(mf: KSCF, cell: Cell | None = None, kpts: ArrayLike | None = None, **kwargs) -> Array:
     if cell is None:
         cell = mf.cell
     if kpts is None:
@@ -45,7 +52,7 @@ def get_hcore(mf, cell=None, kpts=None, **kwargs):
     t = np.asarray(cell.pbc_intor('int1e_kin', hermi=1, kpts=kpts))
     return nuc + t
 
-def energy_elec(mf, dm_kpts=None, h1e_kpts=None, vhf_kpts=None):
+def energy_elec(mf: KSCF, dm_kpts: ArrayLike | None = None, h1e_kpts: ArrayLike | None = None, vhf_kpts: ArrayLike | None = None) -> tuple[float, float]:
     if dm_kpts is None:
         dm_kpts = mf.make_rdm1()
     if h1e_kpts is None:
@@ -65,9 +72,9 @@ def energy_elec(mf, dm_kpts=None, h1e_kpts=None, vhf_kpts=None):
                     e_coul.imag)
     return (e1+e_coul).real, e_coul.real
 
-def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
-             diis_start_cycle=None, level_shift_factor=None, damp_factor=None,
-             fock_last=None):
+def get_fock(mf: KSCF, h1e: ArrayLike | None = None, s1e: ArrayLike | None = None, vhf: ArrayLike | None = None, dm: ArrayLike | None = None, cycle: int = -1, diis=None,
+             diis_start_cycle: int | None = None, level_shift_factor: float | None = None, damp_factor: float | None = None,
+             fock_last: ArrayLike | None = None) -> Array:
     h1e_kpts, s_kpts, vhf_kpts, dm_kpts = h1e, s1e, vhf, dm
     if h1e_kpts is None:
         h1e_kpts = mf.get_hcore()
@@ -98,7 +105,7 @@ def get_fock(mf, h1e=None, s1e=None, vhf=None, dm=None, cycle=-1, diis=None,
                   for k, s in enumerate(s_kpts)]
     return np.asarray(f_kpts)
 
-def make_rdm1(mo_coeff_kpts, mo_occ_kpts, **kwargs):
+def make_rdm1(mo_coeff_kpts: ArrayLike, mo_occ_kpts: ArrayLike, **kwargs) -> Array:
     nkpts = len(mo_occ_kpts)
     dm = [mol_hf.make_rdm1(mo_coeff_kpts[k], mo_occ_kpts[k]) for k in range(nkpts)]
     return np.asarray(dm)
@@ -113,7 +120,7 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
     mo_energy : array
         MO energies.
     """
-    def __init__(self, cell, kpts=numpy.zeros((1,3)),
+    def __init__(self, cell: Cell, kpts: ArrayLike = numpy.zeros((1,3)),
                  exxdiv=getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald')):
         if not cell._built:
             sys.stderr.write('Warning: cell.build() is not called in input\n')
@@ -129,8 +136,8 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
 
         self.exx_built = False
 
-    def get_jk(self, cell=None, dm_kpts=None, hermi=1, kpts=None, kpts_band=None,
-               with_j=True, with_k=True, omega=None, **kwargs):
+    def get_jk(self, cell: Cell | None = None, dm_kpts: ArrayLike | None = None, hermi: int = 1, kpts: ArrayLike | None = None, kpts_band: ArrayLike | None = None,
+               with_j: bool = True, with_k: bool = True, omega: float | None = None, **kwargs) -> tuple[ArrayLike | None, ArrayLike | None]:
         if kpts is None:
             kpts = self.kpts
         if dm_kpts is None:
@@ -147,12 +154,12 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
         del log
         return vj, vk
 
-    def eig(self, h_kpts, s_kpts):
+    def eig(self, h_kpts: ArrayLike, s_kpts: ArrayLike) -> tuple[Array, Array]:
         eig_kpts, mo_coeff_kpts = vmap(self._eigh,
                                        signature='(x,y),(x,y)->(x),(x,y)')(h_kpts, s_kpts)
         return eig_kpts, mo_coeff_kpts
 
-    def make_rdm1(self, mo_coeff_kpts=None, mo_occ_kpts=None, **kwargs):
+    def make_rdm1(self, mo_coeff_kpts: ArrayLike | None = None, mo_occ_kpts: ArrayLike | None = None, **kwargs) -> Array:
         if mo_coeff_kpts is None:
             mo_coeff_kpts = self.mo_coeff
         if mo_occ_kpts is None:
@@ -166,8 +173,8 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
                 fh5['scf/kpts'] = stop_grad(self.kpts)
         return self
 
-    def get_veff(self, cell=None, dm_kpts=None, dm_last=0, vhf_last=0, hermi=1,
-                 kpts=None, kpts_band=None, **kwargs):
+    def get_veff(self, cell: Cell | None = None, dm_kpts: ArrayLike | None = None, dm_last: ArrayLike = 0, vhf_last: ArrayLike = 0, hermi: int = 1,
+                 kpts: ArrayLike | None = None, kpts_band: ArrayLike | None = None, **kwargs) -> Array:
         return pyscf_khf.KSCF.get_veff(
                     self, cell=cell, dm_kpts=dm_kpts, dm_last=dm_last,
                     vhf_last=vhf_last, hermi=hermi, kpts=kpts, kpts_band=kpts_band)
@@ -184,7 +191,7 @@ class KSCF(pbchf.SCF, pyscf_khf.KSCF):
     get_grad = stop_trace(pyscf_khf.KSCF.get_grad)
 
 class KRHF(KSCF, pyscf_khf.KRHF):
-    def get_init_guess(self, cell=None, key='minao', s1e=None):
+    def get_init_guess(self, cell: Cell | None = None, key: str = 'minao', s1e: ArrayLike | None = None) -> Array:
         from pyscf import lib
         if s1e is None:
             s1e = self.get_ovlp(cell)

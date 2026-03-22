@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import numpy
 from pyscf import __config__
 from pyscf.lib import logger
@@ -23,8 +26,12 @@ from pyscfad.dft.rks import VXC
 from pyscfad.pbc.scf import khf
 from pyscfad.pbc.dft import rks
 
-def get_veff(ks, cell=None, dm=None, dm_last=0, vhf_last=0, hermi=1,
-             kpts=None, kpts_band=None, **kwargs):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
+def get_veff(ks, cell: Cell | None = None, dm: ArrayLike | None = None, dm_last: ArrayLike = 0, vhf_last: ArrayLike = 0, hermi: int = 1,
+             kpts: ArrayLike | None = None, kpts_band: ArrayLike | None = None, **kwargs) -> VXC:
     if cell is None: cell = ks.cell
     if dm is None: dm = ks.make_rdm1()
     if kpts is None: kpts = ks.kpts
@@ -102,7 +109,7 @@ class KRKS(rks.KohnShamDFT, khf.KRHF):
     -----
     Grid response is not considered with AD.
     """
-    def __init__(self, cell, kpts=numpy.zeros((1,3)), xc='LDA,VWN',
+    def __init__(self, cell: Cell, kpts: ArrayLike = numpy.zeros((1,3)), xc: str = 'LDA,VWN',
                  exxdiv=getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald')):
         khf.KRHF.__init__(self, cell, kpts, exxdiv)
         rks.KohnShamDFT.__init__(self, xc)

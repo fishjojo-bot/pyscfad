@@ -15,11 +15,17 @@
 """
 Hartree-Fock with PBC
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from pyscfad.pbc.scf import hf
 from pyscfad.pbc.scf import khf
 
-def RHF(cell, **kwargs):
+if TYPE_CHECKING:
+    from pyscfad.pbc.gto import Cell
+
+def RHF(cell: Cell, **kwargs) -> hf.RHF:
     return hf.RHF(cell, **kwargs)
 
-def KRHF(cell, **kwargs):
+def KRHF(cell: Cell, **kwargs) -> khf.KRHF:
     return khf.KRHF(cell, **kwargs)

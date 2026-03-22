@@ -12,11 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from pyscfad.pbc.dft import rks
 from pyscfad.pbc.dft import krks
 
-def RKS(cell, *args, **kwargs):
+if TYPE_CHECKING:
+    from pyscfad.pbc.gto import Cell
+
+def RKS(cell: Cell, *args, **kwargs) -> rks.RKS:
     return rks.RKS(cell, *args, **kwargs)
 
-def KRKS(cell, *args, **kwargs):
+def KRKS(cell: Cell, *args, **kwargs) -> krks.KRKS:
     return krks.KRKS(cell, *args, **kwargs)

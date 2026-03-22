@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import numpy
 from pyscf import __config__
 from pyscf.lib import logger
@@ -27,8 +30,12 @@ from pyscfad.dft.rks import VXC
 from pyscfad.pbc.scf import hf as pbchf
 from pyscfad.pbc.dft import numint
 
-def get_veff(ks, cell=None, dm=None, dm_last=0, vhf_last=0, hermi=1,
-             kpt=None, kpts_band=None, **kwargs):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
+def get_veff(ks, cell: Cell | None = None, dm: ArrayLike | None = None, dm_last: ArrayLike = 0, vhf_last: ArrayLike = 0, hermi: int = 1,
+             kpt: ArrayLike | None = None, kpts_band: ArrayLike | None = None, **kwargs) -> VXC:
     if cell is None:
         cell = ks.cell
     if dm is None:
@@ -133,7 +140,7 @@ class RKS(KohnShamDFT, pbchf.RHF):
     -----
     Grid response is not considered with AD.
     """
-    def __init__(self, cell, xc='LDA,VWN', kpt=numpy.zeros(3),
+    def __init__(self, cell: Cell, xc: str = 'LDA,VWN', kpt: ArrayLike = numpy.zeros(3),
                  exxdiv=getattr(__config__, 'pbc_scf_SCF_exxdiv', 'ewald')):
         pbchf.RHF.__init__(self, cell, kpt, exxdiv)
         KohnShamDFT.__init__(self, xc)
