@@ -45,7 +45,7 @@ def energy_elec(
 class _FockMatrix(pytree.PytreeNode):
     _dynamic_attr = {'fock', 'focka', 'fockb'}
 
-    def __init__(self, fock: ArrayLike, focka: ArrayLike | None = None, fockb: ArrayLike | None = None) -> None:
+    def __init__(self, fock: ArrayLike, focka: ArrayLike | None = None, fockb: ArrayLike | None = None):
         self.fock = fock
         self.focka = focka
         self.fockb = fockb
@@ -56,7 +56,7 @@ class _FockMatrix(pytree.PytreeNode):
 class _OrbitalEnergy(pytree.PytreeNode):
     _dynamic_attr = {'mo_energy', 'mo_ea', 'mo_eb'}
 
-    def __init__(self, mo_energy: ArrayLike, mo_ea: ArrayLike | None = None, mo_eb: ArrayLike | None = None) -> None:
+    def __init__(self, mo_energy: ArrayLike, mo_ea: ArrayLike | None = None, mo_eb: ArrayLike | None = None):
         self.mo_energy = mo_energy
         self.mo_ea = mo_ea
         self.mo_eb = mo_eb
@@ -213,7 +213,7 @@ def get_occ(mf: ROHF, mo_energy: ArrayLike | _OrbitalEnergy | None = None, mo_co
     return mo_occ
 
 class ROHF(hf.SCF, pyscf_rohf.ROHF):
-    def __init__(self, mol: Mole) -> None:
+    def __init__(self, mol: Mole):
         pyscf_rohf.ROHF.__init__(self, mol)
 
     def eig(self, fock: _FockMatrix | ArrayLike, s: ArrayLike) -> tuple[ArrayLike | _OrbitalEnergy, Array]:
