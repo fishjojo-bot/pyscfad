@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import numpy
 from pyscfad import numpy as np
 from pyscfad import ops
 
-def get_gth_vlocG_part1(cell, Gv):
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
+def get_gth_vlocG_part1(cell: Cell, Gv: ArrayLike) -> Array:
     from pyscfad.pbc import tools
     coulG = tools.get_coulG(cell, Gv=Gv)
     G2 = np.einsum('ix,ix->i', Gv, Gv)

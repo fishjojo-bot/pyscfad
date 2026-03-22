@@ -91,7 +91,7 @@ def eval_gto_diff_full(cell: Cell, eval_name: str, coords: ArrayLike, comp: int 
     return out
 
 def eval_gto_diff_cell(cell: Cell, eval_name: str, coords: ArrayLike, comp: int | None = None, kpts: ArrayLike | None = None, kpt: ArrayLike | None = None,
-                       shls_slice=None, non0tab=None, ao_loc=None, out=None):
+                       shls_slice=None, non0tab=None, ao_loc=None, out=None) -> Array:
     if 'ip' in eval_name:
         return pyscf_eval_gto(cell, eval_name, coords, comp, kpts, kpt,
                               shls_slice, non0tab, ao_loc, out)

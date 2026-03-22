@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from functools import wraps
 import numpy
 from pyscf.pbc.gto.pseudo import pp as pyscf_pp
@@ -20,15 +23,19 @@ from pyscfad import numpy as np
 from pyscfad import ops
 from pyscfad.pbc.gto.pseudo import pp_int
 
+if TYPE_CHECKING:
+    from pyscfad.typing import ArrayLike, Array
+    from pyscfad.pbc.gto import Cell
+
 @wraps(pyscf_pp.get_vlocG)
-def get_vlocG(cell, Gv=None):
+def get_vlocG(cell: Cell, Gv: ArrayLike | None = None) -> Array:
     if Gv is None:
         Gv = cell.Gv
     vlocG = get_gth_vlocG(cell, Gv)
     return vlocG
 
 @wraps(pyscf_pp.get_gth_vlocG)
-def get_gth_vlocG(cell, Gv):
+def get_gth_vlocG(cell: Cell, Gv: ArrayLike) -> Array:
     vlocG = pp_int.get_gth_vlocG_part1(cell, Gv)
 
     # Add the C1, C2, C3, C4 contributions
@@ -57,7 +64,7 @@ def get_gth_vlocG(cell, Gv):
 
     return vlocG
 
-def _qli(x,l,i):
+def _qli(x: ArrayLike, l: int, i: int) -> ArrayLike:
     sqrt = np.sqrt
     if l==0 and i==0:
         return 4*sqrt(2.)
